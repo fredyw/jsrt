@@ -1,7 +1,8 @@
 jsrt
 ====
 
-A small SRT parser in Java
+A small SRT parser in Java.
+SRT is a subtitle file format (http://en.wikipedia.org/wiki/.srt#SubRip_text_file_format).
 
 How to build
 ------------
