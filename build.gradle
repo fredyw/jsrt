@@ -8,7 +8,6 @@ subprojects {
     sourceCompatibility = 1.7
     targetCompatibility = 1.7
     version = "0.1.0"
-    defaultTasks = ["clean", "test", "jar"]
     repositories {
         mavenCentral()
     }
@@ -27,6 +26,10 @@ subprojects {
 project(":jsrt-cli") {
     dependencies {
         compile project(":jsrt-api")
+    }
+
+    jar {
+        manifest { attributes "Main-Class": "org.fredy.jsrt.cli.JSRT" }
     }
 }
 

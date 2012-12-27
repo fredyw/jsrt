@@ -26,5 +26,6 @@ package org.fredy.jsrt.cli;
  * @author fredy
  */
 public class JSRT {
-
+    public static void main(String[] args) {
+    }
 }
