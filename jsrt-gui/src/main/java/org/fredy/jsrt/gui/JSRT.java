@@ -20,15 +20,32 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package org.fredy.jsrt.cli;
+package org.fredy.jsrt.gui;
 
-import static org.junit.Assert.*;
-
-import org.junit.Test;
+import javafx.application.Application;
+import javafx.scene.Scene;
+import javafx.scene.layout.BorderPane;
+import javafx.stage.Stage;
 
 /**
+ * A GUI client code.
+ * 
  * @author fredy
  */
-public class JSRTTest {
+public class JSRT extends Application {
+    public static void main(String[] args) {
+        launch(args);
+    }
 
+    @Override
+    public void start(Stage primaryStage) throws Exception {
+        // TODO: it's probably a good idea to externalize all the labels
+        primaryStage.setTitle("JSRT");
+        BorderPane root = new BorderPane();
+        
+        Scene scene = new Scene(root, 800, 600);
+        
+        primaryStage.setScene(scene);
+        primaryStage.show();
+    }
 }

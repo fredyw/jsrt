@@ -20,12 +20,15 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package org.fredy.jsrt.cli;
+package org.fredy.jsrt.gui;
+
+import static org.junit.Assert.*;
+
+import org.junit.Test;
 
 /**
  * @author fredy
  */
-public class JSRT {
-    public static void main(String[] args) {
-    }
+public class JSRTTest {
+
 }

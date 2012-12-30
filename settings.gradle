@@ -1,1 +1,1 @@
-include "jsrt-api", "jsrt-examples", "jsrt-cli"
+include "jsrt-api", "jsrt-examples", "jsrt-gui"

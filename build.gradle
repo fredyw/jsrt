@@ -2,6 +2,17 @@ def distDir = "dist"
 
 defaultTasks = ["clean", "test", "jar", "dist"]
 
+def javafxLib = "jfxrt.jar"
+
+def getJavaFXPath(def javafxLib) {
+    def javaHome = System.env["JAVA_HOME"]
+    if (javaHome == null) {
+        throw new RuntimeException("JAVA_HOME environment variable must be set")
+    }
+    def javafxrt = "jre" + File.separator + "lib" + File.separator + javafxLib
+    return new File(javaHome, javafxrt).absolutePath
+}
+
 subprojects {
     apply plugin: "java"
     apply plugin: "eclipse"
@@ -13,23 +24,32 @@ subprojects {
     }
 
     dependencies {
+        compile files(getJavaFXPath(javafxLib))
+
         testCompile "junit:junit:4.8.2"
     }
 
     jar {
         dependsOn configurations.runtime
-        from { configurations.runtime.collect { it.isDirectory() ? it : zipTree(it) } }
+        from {
+            configurations.runtime.findAll { !it.name.contains(javafxLib) }.collect { 
+                it.isDirectory() ? it : zipTree(it)
+            }
+        }
         from sourceSets.main.allJava
     }
 }
 
-project(":jsrt-cli") {
+project(":jsrt-gui") {
     dependencies {
         compile project(":jsrt-api")
     }
 
     jar {
-        manifest { attributes "Main-Class": "org.fredy.jsrt.cli.JSRT" }
+        manifest {
+            attributes "Main-Class": "org.fredy.jsrt.gui.JSRT"
+            attributes "Class-Path": getJavaFXPath(javafxLib)
+        }
     }
 }
 
