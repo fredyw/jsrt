@@ -22,6 +22,7 @@
  */
 package org.fredy.jsrt.gui;
 
+import java.io.File;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
@@ -30,6 +31,8 @@ import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -46,11 +49,14 @@ import javafx.scene.layout.HBoxBuilder;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.VBoxBuilder;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 
 import org.fredy.jsrt.api.SRT;
+import org.fredy.jsrt.api.SRTException;
 import org.fredy.jsrt.api.SRTInfo;
+import org.fredy.jsrt.api.SRTReader;
 import org.fredy.jsrt.api.SRTTimeFormat;
 import org.fredy.jsrt.util.StringUtils;
 
@@ -61,14 +67,17 @@ import org.fredy.jsrt.util.StringUtils;
  */
 public class JSRT extends Application {
     private ResourceBundle rb;
-    private SRTInfo srtInfo = new SRTInfo();
+    private ObservableList<SRT> srtInfoData;
     // all the controls
+    private Stage primaryStage;
     private Button openButton;
     private Button addButton;
     private Button removeButton;
     private Button upButton;
     private Button downButton;
     private Button checkForUpdateButton;
+    private FileChooser fileChooser;
+    private Label statusMessageLabel = new Label("");
     
     public static void main(String[] args) {
         launch(args);
@@ -76,6 +85,8 @@ public class JSRT extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
+        this.primaryStage = primaryStage;
+        
         Locale locale = Locale.getDefault();
         rb = ResourceBundle.getBundle("jsrt", locale);
         
@@ -95,6 +106,19 @@ public class JSRT extends Application {
     }
     
     private Node createBottomPane() {
+        Label statusLabel = LabelBuilder.create()
+            .text(ResourceBundleKeys.LABEL_STATUS.getValue(rb))
+            .build();
+        
+        HBox hbox1 = HBoxBuilder.create()
+            .spacing(5)
+            .padding(new Insets(10, 10, 10, 10))
+            .children(statusLabel, statusMessageLabel)
+            .style(
+                "-fx-border-width: 2;" +
+                "-fx-border-color: aquamarine;")
+            .build();
+        
         Label createdByLabel = LabelBuilder.create()
             .text(ResourceBundleKeys.LABEL_CREATED_BY.getValue(rb))
             .build();
@@ -103,16 +127,28 @@ public class JSRT extends Application {
             .text(ResourceBundleKeys.BUTTON_CHECK_FOR_UPDATE.getValue(rb))
             .build();
         
-        HBox hbox = HBoxBuilder.create()
+        HBox hbox2 = HBoxBuilder.create()
             .spacing(5)
             .padding(new Insets(10, 10, 10, 10))
             .children(createdByLabel, checkForUpdateButton)
             .build();
         
-        return hbox;
+        VBox vbox = VBoxBuilder.create()
+            .spacing(5)
+            .padding(new Insets(10, 10, 10, 10))
+            .children(hbox1, hbox2)
+            .build();
+        
+        return vbox;
     }
     
     private Node createTopPane() {
+        fileChooser = new FileChooser();
+        FileChooser.ExtensionFilter extFilter =
+            new FileChooser.ExtensionFilter(
+                ResourceBundleKeys.FILECHOOSEREXT_FILTER.getValue(rb), "*.srt");
+        fileChooser.getExtensionFilters().add(extFilter);
+        
         Label subtitleLabel = LabelBuilder.create()
             .text(ResourceBundleKeys.LABEL_SUBTITLE.getValue(rb))
             .build();
@@ -120,6 +156,29 @@ public class JSRT extends Application {
         openButton = ButtonBuilder.create()
             .text(ResourceBundleKeys.BUTTON_OPEN.getValue(rb))
             .build();
+        openButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent evt) {
+                File srtFile = null;
+                try {
+                    srtFile = fileChooser.showOpenDialog(primaryStage);
+                    if (srtFile == null) {
+                        return;
+                    }
+                    statusMessageLabel.setText(srtFile.getAbsolutePath() + " opened");
+                    SRTInfo srtInfo = SRTReader.read(srtFile);
+                    // Always make sure to clear the srtInfoData
+                    srtInfoData.clear();
+                    for (SRT srt : srtInfo) {
+                        srtInfoData.add(srt);
+                    }
+                } catch (SRTException e) {
+                    statusMessageLabel.setStyle("-fx-text-fill: red;");
+                    statusMessageLabel.setText(srtFile.getAbsolutePath() + ": " +
+                        e.getMessage());
+                }
+            }
+        });
         
         HBox hbox = HBoxBuilder.create()
             .spacing(5)
@@ -127,7 +186,13 @@ public class JSRT extends Application {
             .children(subtitleLabel, openButton)
             .build();
         
-        return hbox;
+        VBox vbox = VBoxBuilder.create()
+            .spacing(5)
+            .padding(new Insets(10, 10, 10, 10))
+            .children(hbox)
+            .build();
+        
+        return vbox;
     }
     
     private Node createRightPane() {
@@ -167,13 +232,10 @@ public class JSRT extends Application {
     
     @SuppressWarnings("unchecked")
     private Node createCenterPane() {
-        ObservableList<SRT> data = FXCollections.observableArrayList();
-        for (SRT srt : srtInfo) {
-            data.add(srt);
-        }
+        srtInfoData = FXCollections.observableArrayList();
         
         TableView<SRT> tableView = new TableView<>();
-        tableView.setItems(data);
+        tableView.setItems(srtInfoData);
         TableColumn<SRT, String> numberTableColumn = new TableColumn<>(
             ResourceBundleKeys.TABLECOLUMN_NUMBER.getValue(rb));
         numberTableColumn.prefWidthProperty().bind(tableView.widthProperty().divide(4));

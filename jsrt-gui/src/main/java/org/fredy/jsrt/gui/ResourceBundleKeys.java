@@ -35,6 +35,7 @@ public enum ResourceBundleKeys {
     
     LABEL_SUBTITLE("label.subtitle"),
     LABEL_CREATED_BY("label.createdby"),
+    LABEL_STATUS("label.status"),
     
     BUTTON_OPEN("button.open"),
     BUTTON_INSERT("button.insert"),
@@ -46,7 +47,9 @@ public enum ResourceBundleKeys {
     TABLECOLUMN_NUMBER("tablecolumn.number"),
     TABLECOLUMN_START_TIME("tablecolumn.starttime"),
     TABLECOLUMN_END_TIME("tablecolumn.endtime"),
-    TABLECOLUMN_TEXT("tablecolumn.text");
+    TABLECOLUMN_TEXT("tablecolumn.text"),
+    
+    FILECHOOSEREXT_FILTER("filechooserext.filter");
     
     private String key;
 
