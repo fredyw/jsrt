@@ -43,6 +43,7 @@ subprojects {
 project(":jsrt-gui") {
     dependencies {
         compile project(":jsrt-api")
+        compile fileTree(dir: "lib", include: "*.jar")
     }
 
     jar {

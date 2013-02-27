@@ -53,8 +53,9 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 
+import name.antonsmirnov.javafx.dialog.Dialog;
+
 import org.fredy.jsrt.api.SRT;
-import org.fredy.jsrt.api.SRTException;
 import org.fredy.jsrt.api.SRTInfo;
 import org.fredy.jsrt.api.SRTReader;
 import org.fredy.jsrt.api.SRTTimeFormat;
@@ -71,13 +72,13 @@ public class JSRT extends Application {
     // all the controls
     private Stage primaryStage;
     private Button openButton;
+    private Button editButton;
     private Button addButton;
     private Button removeButton;
     private Button upButton;
     private Button downButton;
     private Button checkForUpdateButton;
     private FileChooser fileChooser;
-    private Label statusMessageLabel = new Label("");
     
     public static void main(String[] args) {
         launch(args);
@@ -106,19 +107,6 @@ public class JSRT extends Application {
     }
     
     private Node createBottomPane() {
-        Label statusLabel = LabelBuilder.create()
-            .text(ResourceBundleKeys.LABEL_STATUS.getValue(rb))
-            .build();
-        
-        HBox hbox1 = HBoxBuilder.create()
-            .spacing(5)
-            .padding(new Insets(10, 10, 10, 10))
-            .children(statusLabel, statusMessageLabel)
-            .style(
-                "-fx-border-width: 2;" +
-                "-fx-border-color: aquamarine;")
-            .build();
-        
         Label createdByLabel = LabelBuilder.create()
             .text(ResourceBundleKeys.LABEL_CREATED_BY.getValue(rb))
             .build();
@@ -126,8 +114,20 @@ public class JSRT extends Application {
         checkForUpdateButton = ButtonBuilder.create()
             .text(ResourceBundleKeys.BUTTON_CHECK_FOR_UPDATE.getValue(rb))
             .build();
+        checkForUpdateButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                try {
+                    // TODO Auto-generated method stub
+                } catch (Exception e) {
+                    Dialog.showThrowable(
+                        ResourceBundleKeys.DIALOG_ERROR_TITLE.getValue(rb),
+                        e.getMessage(), e, primaryStage);
+                }
+            }
+        });
         
-        HBox hbox2 = HBoxBuilder.create()
+        HBox hbox = HBoxBuilder.create()
             .spacing(5)
             .padding(new Insets(10, 10, 10, 10))
             .children(createdByLabel, checkForUpdateButton)
@@ -136,7 +136,7 @@ public class JSRT extends Application {
         VBox vbox = VBoxBuilder.create()
             .spacing(5)
             .padding(new Insets(10, 10, 10, 10))
-            .children(hbox1, hbox2)
+            .children(hbox)
             .build();
         
         return vbox;
@@ -165,17 +165,16 @@ public class JSRT extends Application {
                     if (srtFile == null) {
                         return;
                     }
-                    statusMessageLabel.setText(srtFile.getAbsolutePath() + " opened");
                     SRTInfo srtInfo = SRTReader.read(srtFile);
                     // Always make sure to clear the srtInfoData
                     srtInfoData.clear();
                     for (SRT srt : srtInfo) {
                         srtInfoData.add(srt);
                     }
-                } catch (SRTException e) {
-                    statusMessageLabel.setStyle("-fx-text-fill: red;");
-                    statusMessageLabel.setText(srtFile.getAbsolutePath() + ": " +
-                        e.getMessage());
+                } catch (Exception e) {
+                    Dialog.showThrowable(
+                        ResourceBundleKeys.DIALOG_ERROR_TITLE.getValue(rb),
+                        e.getMessage(), e, primaryStage);
                 }
             }
         });
@@ -196,32 +195,98 @@ public class JSRT extends Application {
     }
     
     private Node createRightPane() {
+        editButton = ButtonBuilder.create()
+            .maxWidth(Double.MAX_VALUE)
+            .text(ResourceBundleKeys.BUTTON_EDIT.getValue(rb))
+            .build();
+        editButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                try {
+                    // TODO Auto-generated method stub
+                } catch (Exception e) {
+                    Dialog.showThrowable(
+                        ResourceBundleKeys.DIALOG_ERROR_TITLE.getValue(rb),
+                        e.getMessage(), e, primaryStage);
+                }
+            }
+        });
+        
         addButton = ButtonBuilder.create()
             .maxWidth(Double.MAX_VALUE)
             .text(ResourceBundleKeys.BUTTON_INSERT.getValue(rb))
             .build();
+        addButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                try {
+                    // TODO Auto-generated method stub
+                } catch (Exception e) {
+                    Dialog.showThrowable(
+                        ResourceBundleKeys.DIALOG_ERROR_TITLE.getValue(rb),
+                        e.getMessage(), e, primaryStage);
+                }
+            }
+        });
         
         removeButton = ButtonBuilder.create()
             .maxWidth(Double.MAX_VALUE)
             .text(ResourceBundleKeys.BUTTON_REMOVE.getValue(rb))
             .build();
+        removeButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                try {
+                    // TODO Auto-generated method stub
+                } catch (Exception e) {
+                    Dialog.showThrowable(
+                        ResourceBundleKeys.DIALOG_ERROR_TITLE.getValue(rb),
+                        e.getMessage(), e, primaryStage);
+                }
+            }
+        });
         
         upButton = ButtonBuilder.create()
             .maxWidth(Double.MAX_VALUE)
             .text(ResourceBundleKeys.BUTTON_MOVE_UP.getValue(rb))
             .build();
+        upButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                try {
+                    // TODO Auto-generated method stub
+                } catch (Exception e) {
+                    Dialog.showThrowable(
+                        ResourceBundleKeys.DIALOG_ERROR_TITLE.getValue(rb),
+                        e.getMessage(), e, primaryStage);
+                }
+            }
+        });
         
         downButton = ButtonBuilder.create()
             .maxWidth(Double.MAX_VALUE)
             .text(ResourceBundleKeys.BUTTON_MOVE_DOWN.getValue(rb))
             .build();
+        downButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                try {
+                    // TODO Auto-generated method stub
+                } catch (Exception e) {
+                    Dialog.showThrowable(
+                        ResourceBundleKeys.DIALOG_ERROR_TITLE.getValue(rb),
+                        e.getMessage(), e, primaryStage);
+                }
+            }
+        });
         
         VBox vbox = VBoxBuilder.create()
             .spacing(5)
             .padding(new Insets(10, 10, 10, 10))
-            .children(addButton, removeButton, upButton, downButton)
+            .children(editButton, addButton, removeButton, upButton, downButton)
             .build();
         
+        VBox.setMargin(editButton, new Insets(0, 0, 5, 0));
         VBox.setMargin(addButton, new Insets(0, 0, 5, 0));
         VBox.setMargin(removeButton, new Insets(0, 0, 5, 0));
         VBox.setMargin(upButton, new Insets(0, 0, 5, 0));

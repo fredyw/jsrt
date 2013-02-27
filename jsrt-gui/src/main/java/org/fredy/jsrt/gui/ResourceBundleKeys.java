@@ -35,9 +35,9 @@ public enum ResourceBundleKeys {
     
     LABEL_SUBTITLE("label.subtitle"),
     LABEL_CREATED_BY("label.createdby"),
-    LABEL_STATUS("label.status"),
     
     BUTTON_OPEN("button.open"),
+    BUTTON_EDIT("button.edit"),
     BUTTON_INSERT("button.insert"),
     BUTTON_REMOVE("button.remove"),
     BUTTON_MOVE_UP("button.moveup"),
@@ -48,6 +48,8 @@ public enum ResourceBundleKeys {
     TABLECOLUMN_START_TIME("tablecolumn.starttime"),
     TABLECOLUMN_END_TIME("tablecolumn.endtime"),
     TABLECOLUMN_TEXT("tablecolumn.text"),
+    
+    DIALOG_ERROR_TITLE("dialog.error.title"),
     
     FILECHOOSEREXT_FILTER("filechooserext.filter");
     
