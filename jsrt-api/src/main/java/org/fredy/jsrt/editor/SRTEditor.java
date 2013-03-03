@@ -252,4 +252,14 @@ public class SRTEditor {
         // Remove the last element
         info.remove(info.size());
     }
+    
+    /**
+     * Updates the subtitle from the SRTInfo object.
+     * 
+     * @param info the SRTInfo object
+     * @param srt the SRT object
+     */
+    public static void updateSubtitle(SRTInfo info, SRT srt) {
+        // TODO: to be implemented
+    }
 }

@@ -24,6 +24,7 @@ package org.fredy.jsrt.api;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 
 /**
@@ -34,6 +35,10 @@ import java.util.Date;
 public class SRTTimeFormat {
     public static final String TIME_DELIMITER = " --> ";
     public static final String TIME_FORMAT = "HH:mm:ss,SSS";
+    public static final String HOUR_FORMAT = "HH";
+    public static final String MINUTE_FORMAT = "mm";
+    public static final String SECOND_FORMAT = "ss";
+    public static final String MILLISECOND_FORMAT = "SSS";
     private static final SimpleDateFormat sdf = new SimpleDateFormat(TIME_FORMAT);
     
     public enum Type {
@@ -41,6 +46,20 @@ public class SRTTimeFormat {
         MINUTE,
         SECOND,
         MILLISECOND
+    }
+    
+    public static class SRTTime {
+        public final int hour;
+        public final int minute;
+        public final int second;
+        public final int millisecond;
+        
+        public SRTTime(int hour, int minute, int second, int millisecond) {
+            this.hour = hour;
+            this.minute = minute;
+            this.second = second;
+            this.millisecond = millisecond;
+        }
     }
     
     private SRTTimeFormat() {
@@ -63,5 +82,52 @@ public class SRTTimeFormat {
      */
     public static Date parse(String srtTime) throws ParseException {
         return sdf.parse(srtTime);
+    }
+    
+    /**
+     * Converts Date to SRTTime.
+     * 
+     * @param date the date
+     * @return the SRTTime
+     */
+    public static SRTTime toSRTTime(Date date) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        return new SRTTime(
+            cal.get(Calendar.HOUR),
+            cal.get(Calendar.MINUTE),
+            cal.get(Calendar.SECOND),
+            cal.get(Calendar.MILLISECOND));
+    }
+    
+    /**
+     * Converts SRTTime to Date.
+     * 
+     * @param srtTime the SRTTime
+     * @return the Date
+     * @throws ParseException
+     */
+    public static Date fromSRTTime(SRTTime srtTime) throws ParseException {
+        StringBuilder timeStr = new StringBuilder();
+        if (srtTime.hour < 10) {
+            timeStr.append("0");
+        }
+        timeStr.append(Integer.toString(srtTime.hour));
+        if (srtTime.minute < 10) {
+            timeStr.append("0");
+        }
+        timeStr.append(Integer.toString(srtTime.minute));
+        if (srtTime.second < 10) {
+            timeStr.append("0");
+        }
+        timeStr.append(Integer.toString(srtTime.second));
+        if (srtTime.second < 10) {
+            timeStr.append("00");
+        } else if (srtTime.second < 100) {
+            timeStr.append("0");
+        }
+        timeStr.append(Integer.toString(srtTime.millisecond));
+        
+        return SRTTimeFormat.parse(timeStr.toString());
     }
 }
