@@ -277,7 +277,7 @@ public class SRTEditorTest {
     }
     
     @Test
-    public void testInsertSubtitle() throws Exception {
+    public void testInsertSubtitle1() throws Exception {
         SRTInfo srtInfo = new SRTInfo();
         for (int i = 1; i <= 4; i++) {
             srtInfo.add(new SRT(i, SRTTimeFormat.parse("00:00:24,600"),
@@ -285,6 +285,36 @@ public class SRTEditorTest {
         }
         SRTEditor.insertSubtitle(srtInfo, 3, "00:00:24,600", "00:00:26,600",
             Arrays.asList("Foo100"));
+        
+        assertEquals(5, srtInfo.size());
+        SRT srt = srtInfo.get(1);
+        assertEquals("Foo1", StringUtils.join(srt.text, ""));
+        
+        srt = srtInfo.get(2);
+        assertEquals("Foo2", StringUtils.join(srt.text, ""));
+        
+        srt = srtInfo.get(3);
+        assertEquals("Foo100", StringUtils.join(srt.text, ""));
+        
+        srt = srtInfo.get(4);
+        assertEquals("Foo3", StringUtils.join(srt.text, ""));
+        
+        srt = srtInfo.get(5);
+        assertEquals("Foo4", StringUtils.join(srt.text, ""));
+    }
+    
+    @Test
+    public void testInsertSubtitle2() throws Exception {
+        SRTInfo srtInfo = new SRTInfo();
+        for (int i = 1; i <= 4; i++) {
+            srtInfo.add(new SRT(i, SRTTimeFormat.parse("00:00:24,600"),
+                SRTTimeFormat.parse("00:00:26,600"), "Foo" + i));
+        }
+        SRTEditor.insertSubtitle(srtInfo,
+            new SRT(3,
+            SRTTimeFormat.parse("00:00:24,600"),
+            SRTTimeFormat.parse("00:00:26,600"),
+            Arrays.asList("Foo100")));
         
         assertEquals(5, srtInfo.size());
         SRT srt = srtInfo.get(1);

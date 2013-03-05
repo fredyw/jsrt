@@ -59,6 +59,7 @@ public enum ResourceBundleKeys {
     TABLECOLUMN_TEXT("tablecolumn.text"),
     
     DIALOG_ERROR_TITLE("dialog.error.title"),
+    DIALOG_INSERT_TITLE("dialog.insert.title"),
     DIALOG_EDIT_TITLE("dialog.edit.title"),
     
     FILECHOOSEREXT_FILTER("filechooserext.filter");

@@ -211,6 +211,20 @@ public class JSRT extends Application {
         return vbox;
     }
     
+    private void showInsertDialog(SRT prevSRT) {
+        try {
+            // It makes more sense to fill in the start time and end time from
+            // the previous SRT record
+            SRT srt = new SRT(prevSRT.number + 1, prevSRT.startTime, prevSRT.endTime, "");
+            InsertDialog editDialog = new InsertDialog(rb, srt);
+            editDialog.show();
+        } catch (Exception e) {
+            Dialog.showThrowable(
+                ResourceBundleKeys.DIALOG_ERROR_TITLE.getValue(rb),
+                e.getMessage(), e, primaryStage);
+        }
+    }
+    
     private void showEditDialog() {
         try {
             SRT srt = tableView.getSelectionModel().getSelectedItem().srt;
@@ -246,6 +260,11 @@ public class JSRT extends Application {
             public void handle(ActionEvent event) {
                 try {
                     // TODO Auto-generated method stub
+                    SRTWrapper sw = tableView.getSelectionModel().getSelectedItem();
+                    if (sw == null) {
+                        return;
+                    }
+                    showInsertDialog(sw.srt);
                 } catch (Exception e) {
                     Dialog.showThrowable(
                         ResourceBundleKeys.DIALOG_ERROR_TITLE.getValue(rb),
@@ -264,6 +283,9 @@ public class JSRT extends Application {
             public void handle(ActionEvent event) {
                 try {
                     SRTWrapper sw = tableView.getSelectionModel().getSelectedItem();
+                    if (sw == null) {
+                        return;
+                    }
                     SRTEditor.removeSubtitle(srtInfo, sw.srt.number);
                     SRTWriter.write(srtFile, srtInfo);
                     srtInfoData.remove(sw);
@@ -340,8 +362,8 @@ public class JSRT extends Application {
                 if (srtInfoData.size() == 0) {
                     return;
                 }
-                SRT srt = tableView.getSelectionModel().getSelectedItem().srt;
-                if (srt != null) {
+                SRTWrapper sw = tableView.getSelectionModel().getSelectedItem();
+                if (sw != null) {
                     editButton.setDisable(false);
                     insertButton.setDisable(false);
                     removeButton.setDisable(false);
@@ -409,9 +431,9 @@ public class JSRT extends Application {
         return vbox;
     }
     
-    private class EditDialog extends Stage {
-        private ResourceBundle rb;
-        private SRT srt;
+    private abstract class BaseDialog extends Stage {
+        protected ResourceBundle rb;
+        protected SRT srt;
         // controls
         private ListSpinner<Integer> startTimeHourListSpinner;
         private ListSpinner<Integer> startTimeMinListSpinner;
@@ -423,17 +445,23 @@ public class JSRT extends Application {
         private ListSpinner<Integer> endTimeMilliSecListSpinner;
         private TextArea textTextArea;
         
-        public EditDialog(ResourceBundle rb, SRT srt) {
+        public BaseDialog(ResourceBundle rb, SRT srt) {
             this.rb = rb;
             this.srt = srt;
             
-            setTitle(ResourceBundleKeys.DIALOG_EDIT_TITLE.getValue(rb));
+            setTitle(getDialogTitle());
             BorderPane root = new BorderPane();
             root.setCenter(createCenterPane());
             root.setBottom(createBottomPane());
             Scene scene = new Scene(root, 800, 400);
             setScene(scene);
         }
+        
+        protected abstract String getDialogTitle();
+        
+        protected abstract String getButtonText();
+        
+        protected abstract void execute(SRT newSRT);
         
         private ObservableList<Integer> getHourList() {
             List<Integer> list = new ArrayList<>();
@@ -576,8 +604,8 @@ public class JSRT extends Application {
         }
         
         private Node createBottomPane() {
-            Button updateButton = new Button(ResourceBundleKeys.BUTTON_UPDATE.getValue(rb));
-            updateButton.setOnAction(new EventHandler<ActionEvent>() {
+            Button btn = new Button(getButtonText());
+            btn.setOnAction(new EventHandler<ActionEvent>() {
                 @Override
                 public void handle(ActionEvent evt) {
                     try {
@@ -596,7 +624,8 @@ public class JSRT extends Application {
                             SRTTimeFormat.fromSRTTime(startSRTTime),
                             SRTTimeFormat.fromSRTTime(endSRTTime),
                             textTextArea.getText());
-                        SRTEditor.updateSubtitle(srtInfo, newSRT);
+                        execute(newSRT);
+                        
                         SRTWriter.write(srtFile, srtInfo);
                         srtInfoData.clear();
                         for (SRT s : srtInfo) {
@@ -606,7 +635,7 @@ public class JSRT extends Application {
                     } catch (Exception e) {
                         Dialog.showThrowable(
                             ResourceBundleKeys.DIALOG_ERROR_TITLE.getValue(rb),
-                            e.getMessage(), e, EditDialog.this);
+                            e.getMessage(), e, BaseDialog.this);
                     }
                 }
             });
@@ -614,10 +643,70 @@ public class JSRT extends Application {
             VBox vbox = VBoxBuilder.create()
                 .spacing(5)
                 .padding(new Insets(0, 20, 20, 20))
-                .children(updateButton)
+                .children(btn)
                 .build();
 
             return vbox;
+        }
+    }
+    
+    private class EditDialog extends BaseDialog {
+        public EditDialog(ResourceBundle rb, SRT srt) {
+            super(rb, srt);
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        protected String getDialogTitle() {
+            return ResourceBundleKeys.DIALOG_EDIT_TITLE.getValue(rb);
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        protected String getButtonText() {
+            return ResourceBundleKeys.BUTTON_UPDATE.getValue(rb);
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        protected void execute(SRT newSRT) {
+            SRTEditor.updateSubtitle(srtInfo, newSRT);
+        }
+    }
+    
+    private class InsertDialog extends BaseDialog {
+        public InsertDialog(ResourceBundle rb, SRT srt) {
+            super(rb, srt);
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        protected String getDialogTitle() {
+            return ResourceBundleKeys.DIALOG_INSERT_TITLE.getValue(rb);
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        protected String getButtonText() {
+            return ResourceBundleKeys.BUTTON_INSERT.getValue(rb);
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        protected void execute(SRT newSRT) {
+            SRTEditor.insertSubtitle(srtInfo, newSRT);
         }
     }
     

@@ -232,6 +232,23 @@ public class SRTEditor {
     }
     
     /**
+     * Inserts the subtitle into SRTInfo object. All the subsequent subtitle
+     * numbers after the new subtitle that is going to be inserted will be
+     * updated.
+     * 
+     * @param info the SRTInfo object
+     * @param newSRT the new SRT
+     */
+    public static void insertSubtitle(SRTInfo info, SRT newSRT) {
+        for (int i = info.size(); i >= newSRT.number; i--) {
+            SRT tmp = info.get(i);
+            info.add(new SRT(tmp.number+1, tmp.startTime, tmp.endTime, tmp.text));
+        }
+        
+        info.add(newSRT);
+    }
+    
+    /**
      * Removes the subtitle from SRTInfo object. This method will update
      * all the subsequent subtitle numbers after the subtitle number that is
      * going to be removed.
