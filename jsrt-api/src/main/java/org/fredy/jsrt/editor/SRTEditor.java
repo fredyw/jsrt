@@ -260,6 +260,6 @@ public class SRTEditor {
      * @param srt the SRT object
      */
     public static void updateSubtitle(SRTInfo info, SRT srt) {
-        // TODO: to be implemented
+        info.add(srt);
     }
 }

@@ -103,4 +103,13 @@ public class SRT implements Comparable<SRT> {
     public int compareTo(SRT o) {
         return new Integer(number).compareTo(o.number);
     }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("SRT [number=").append(number).append(", startTime=")
+            .append(startTime).append(", endTime=").append(endTime).append(", text=")
+            .append(text).append("]");
+        return builder.toString();
+    }
 }

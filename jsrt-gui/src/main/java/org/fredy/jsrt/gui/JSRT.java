@@ -68,6 +68,8 @@ import org.fredy.jsrt.api.SRTInfo;
 import org.fredy.jsrt.api.SRTReader;
 import org.fredy.jsrt.api.SRTTimeFormat;
 import org.fredy.jsrt.api.SRTTimeFormat.SRTTime;
+import org.fredy.jsrt.api.SRTWriter;
+import org.fredy.jsrt.editor.SRTEditor;
 import org.fredy.jsrt.util.StringUtils;
 
 /**
@@ -77,10 +79,12 @@ import org.fredy.jsrt.util.StringUtils;
  */
 public class JSRT extends Application {
     private ResourceBundle rb;
-    private ObservableList<SRT> srtInfoData;
+    private ObservableList<SRTWrapper> srtInfoData;
     private SRTInfo srtInfo;
+    private File srtFile;
     // all the controls
     private Stage primaryStage;
+    private Label filePathLabel;
     private Button openButton;
     private Button editButton;
     private Button insertButton;
@@ -89,7 +93,7 @@ public class JSRT extends Application {
 //    private Button downButton;
     private Button checkForUpdateButton;
     private FileChooser fileChooser;
-    private TableView<SRT> tableView;
+    private TableView<SRTWrapper> tableView;
     
     public static void main(String[] args) {
         launch(args);
@@ -154,6 +158,8 @@ public class JSRT extends Application {
     }
     
     private Node createTopPane() {
+        filePathLabel = new Label("");
+        
         fileChooser = new FileChooser();
         FileChooser.ExtensionFilter extFilter =
             new FileChooser.ExtensionFilter(
@@ -170,7 +176,6 @@ public class JSRT extends Application {
         openButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent evt) {
-                File srtFile = null;
                 try {
                     srtFile = fileChooser.showOpenDialog(primaryStage);
                     if (srtFile == null) {
@@ -180,8 +185,9 @@ public class JSRT extends Application {
                     // Always make sure to clear the srtInfoData
                     srtInfoData.clear();
                     for (SRT srt : srtInfo) {
-                        srtInfoData.add(srt);
+                        srtInfoData.add(new SRTWrapper(srt));
                     }
+                    filePathLabel.setText("  [" + srtFile.getAbsolutePath() + "]"); 
                 } catch (Exception e) {
                     Dialog.showThrowable(
                         ResourceBundleKeys.DIALOG_ERROR_TITLE.getValue(rb),
@@ -193,7 +199,7 @@ public class JSRT extends Application {
         HBox hbox = HBoxBuilder.create()
             .spacing(5)
             .padding(new Insets(10, 10, 10, 10))
-            .children(subtitleLabel, openButton)
+            .children(subtitleLabel, openButton, filePathLabel)
             .build();
         
         VBox vbox = VBoxBuilder.create()
@@ -207,8 +213,7 @@ public class JSRT extends Application {
     
     private void showEditDialog() {
         try {
-            // TODO Auto-generated method stub
-            SRT srt = tableView.getSelectionModel().getSelectedItem();
+            SRT srt = tableView.getSelectionModel().getSelectedItem().srt;
             EditDialog editDialog = new EditDialog(rb, srt);
             editDialog.show();
         } catch (Exception e) {
@@ -258,7 +263,14 @@ public class JSRT extends Application {
             @Override
             public void handle(ActionEvent event) {
                 try {
-                    // TODO Auto-generated method stub
+                    SRTWrapper sw = tableView.getSelectionModel().getSelectedItem();
+                    SRTEditor.removeSubtitle(srtInfo, sw.srt.number);
+                    SRTWriter.write(srtFile, srtInfo);
+                    srtInfoData.remove(sw);
+                    if (srtInfoData.size() == 0) {
+                        editButton.setDisable(true);
+                        removeButton.setDisable(true);
+                    }
                 } catch (Exception e) {
                     Dialog.showThrowable(
                         ResourceBundleKeys.DIALOG_ERROR_TITLE.getValue(rb),
@@ -325,14 +337,17 @@ public class JSRT extends Application {
         tableView.setOnMouseClicked(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent evt) {
-                SRT srt = tableView.getSelectionModel().getSelectedItem();
+                if (srtInfoData.size() == 0) {
+                    return;
+                }
+                SRT srt = tableView.getSelectionModel().getSelectedItem().srt;
                 if (srt != null) {
                     editButton.setDisable(false);
                     insertButton.setDisable(false);
                     removeButton.setDisable(false);
                     
                     if (evt.getButton().equals(MouseButton.PRIMARY)){
-                        if  (evt.getClickCount() == 2){
+                        if (evt.getClickCount() == 2) {
                             showEditDialog();
                         }
                     }
@@ -340,43 +355,43 @@ public class JSRT extends Application {
             }
         });
         
-        TableColumn<SRT, String> numberTableColumn = new TableColumn<>(
+        TableColumn<SRTWrapper, String> numberTableColumn = new TableColumn<>(
             ResourceBundleKeys.TABLECOLUMN_NUMBER.getValue(rb));
         numberTableColumn.prefWidthProperty().bind(tableView.widthProperty().divide(4));
         numberTableColumn.setCellValueFactory(
-            new Callback<CellDataFeatures<SRT, String>, ObservableValue<String>>() {
-            public ObservableValue<String> call(CellDataFeatures<SRT, String> p) {
-                return new ReadOnlyStringWrapper(Integer.toString(p.getValue().number));
+            new Callback<CellDataFeatures<SRTWrapper, String>, ObservableValue<String>>() {
+            public ObservableValue<String> call(CellDataFeatures<SRTWrapper, String> p) {
+                return new ReadOnlyStringWrapper(Integer.toString(p.getValue().srt.number));
             }
         });
         
-        TableColumn<SRT, String> startTimeTableColumn = new TableColumn<>(
+        TableColumn<SRTWrapper, String> startTimeTableColumn = new TableColumn<>(
             ResourceBundleKeys.TABLECOLUMN_START_TIME.getValue(rb));
         startTimeTableColumn.prefWidthProperty().bind(tableView.widthProperty().divide(4));
         startTimeTableColumn.setCellValueFactory(
-            new Callback<CellDataFeatures<SRT, String>, ObservableValue<String>>() {
-            public ObservableValue<String> call(CellDataFeatures<SRT, String> p) {
-                return new ReadOnlyStringWrapper(SRTTimeFormat.format(p.getValue().startTime));
+            new Callback<CellDataFeatures<SRTWrapper, String>, ObservableValue<String>>() {
+            public ObservableValue<String> call(CellDataFeatures<SRTWrapper, String> p) {
+                return new ReadOnlyStringWrapper(SRTTimeFormat.format(p.getValue().srt.startTime));
             }
         });
         
-        TableColumn<SRT, String> endTimeTableColumn = new TableColumn<>(
+        TableColumn<SRTWrapper, String> endTimeTableColumn = new TableColumn<>(
             ResourceBundleKeys.TABLECOLUMN_END_TIME.getValue(rb));
         endTimeTableColumn.prefWidthProperty().bind(tableView.widthProperty().divide(4));
         endTimeTableColumn.setCellValueFactory(
-            new Callback<CellDataFeatures<SRT, String>, ObservableValue<String>>() {
-            public ObservableValue<String> call(CellDataFeatures<SRT, String> p) {
-                return new ReadOnlyStringWrapper(SRTTimeFormat.format(p.getValue().endTime));
+            new Callback<CellDataFeatures<SRTWrapper, String>, ObservableValue<String>>() {
+            public ObservableValue<String> call(CellDataFeatures<SRTWrapper, String> p) {
+                return new ReadOnlyStringWrapper(SRTTimeFormat.format(p.getValue().srt.endTime));
             }
         });
         
-        TableColumn<SRT, String> textTableColumn = new TableColumn<>(
+        TableColumn<SRTWrapper, String> textTableColumn = new TableColumn<>(
             ResourceBundleKeys.TABLECOLUMN_TEXT.getValue(rb));
         textTableColumn.prefWidthProperty().bind(tableView.widthProperty().divide(4));
         textTableColumn.setCellValueFactory(
-            new Callback<CellDataFeatures<SRT, String>, ObservableValue<String>>() {
-            public ObservableValue<String> call(CellDataFeatures<SRT, String> p) {
-                return new ReadOnlyStringWrapper(StringUtils.join(p.getValue().text,
+            new Callback<CellDataFeatures<SRTWrapper, String>, ObservableValue<String>>() {
+            public ObservableValue<String> call(CellDataFeatures<SRTWrapper, String> p) {
+                return new ReadOnlyStringWrapper(StringUtils.join(p.getValue().srt.text,
                     System.getProperty("line.separator")));
             }
         });
@@ -394,9 +409,19 @@ public class JSRT extends Application {
         return vbox;
     }
     
-    private static class EditDialog extends Stage {
+    private class EditDialog extends Stage {
         private ResourceBundle rb;
         private SRT srt;
+        // controls
+        private ListSpinner<Integer> startTimeHourListSpinner;
+        private ListSpinner<Integer> startTimeMinListSpinner;
+        private ListSpinner<Integer> startTimeSecListSpinner;
+        private ListSpinner<Integer> startTimeMilliSecListSpinner;
+        private ListSpinner<Integer> endTimeHourListSpinner;
+        private ListSpinner<Integer> endTimeMinListSpinner;
+        private ListSpinner<Integer> endTimeSecListSpinner ;
+        private ListSpinner<Integer> endTimeMilliSecListSpinner;
+        private TextArea textTextArea;
         
         public EditDialog(ResourceBundle rb, SRT srt) {
             this.rb = rb;
@@ -464,19 +489,19 @@ public class JSRT extends Application {
             SRTTime startTimeSRTTime = SRTTimeFormat.toSRTTime(srt.startTime);
             
             Label startTimeHourLabel = new Label(ResourceBundleKeys.LABEL_HOUR.getValue(rb));
-            ListSpinner<Integer> startTimeHourListSpinner = new ListSpinner<>(getHourList())
+            startTimeHourListSpinner = new ListSpinner<>(getHourList())
                 .withValue(startTimeSRTTime.hour);
             
             Label startTimeMinLabel = new Label(ResourceBundleKeys.LABEL_MINUTE.getValue(rb));
-            ListSpinner<Integer> startTimeMinListSpinner = new ListSpinner<>(getMinList())
+            startTimeMinListSpinner = new ListSpinner<>(getMinList())
                 .withValue(startTimeSRTTime.minute);
                 
             Label startTimeSecLabel = new Label(ResourceBundleKeys.LABEL_SECOND.getValue(rb));
-            ListSpinner<Integer> startTimeSecListSpinner = new ListSpinner<>(getSecList())
+            startTimeSecListSpinner = new ListSpinner<>(getSecList())
                 .withValue(startTimeSRTTime.second);
                 
             Label startTimeilliSecLabel = new Label(ResourceBundleKeys.LABEL_MILLISECOND.getValue(rb));
-            ListSpinner<Integer> startTimeMilliSecListSpinner = new ListSpinner<>(getMilliSecList())
+            startTimeMilliSecListSpinner = new ListSpinner<>(getMilliSecList())
                 .withValue(startTimeSRTTime.millisecond);
                 
             HBox startTimeHBox = HBoxBuilder.create()
@@ -496,19 +521,19 @@ public class JSRT extends Application {
             SRTTime endSRTTime = SRTTimeFormat.toSRTTime(srt.endTime);
             
             Label endTimeHourLabel = new Label(ResourceBundleKeys.LABEL_HOUR.getValue(rb));
-            ListSpinner<Integer> endTimeHourListSpinner = new ListSpinner<>(getHourList())
+            endTimeHourListSpinner = new ListSpinner<>(getHourList())
                 .withValue(endSRTTime.hour);
                 
             Label endTimeMinLabel = new Label(ResourceBundleKeys.LABEL_MINUTE.getValue(rb));
-            ListSpinner<Integer> endTimeMinListSpinner = new ListSpinner<>(getMinList())
+            endTimeMinListSpinner = new ListSpinner<>(getMinList())
                 .withValue(endSRTTime.minute);
             
             Label endTimeSecLabel = new Label(ResourceBundleKeys.LABEL_SECOND.getValue(rb));
-            ListSpinner<Integer> endTimeSecListSpinner = new ListSpinner<>(getSecList())
+            endTimeSecListSpinner = new ListSpinner<>(getSecList())
                 .withValue(endSRTTime.second);
                 
             Label endTImeMilliSecLabel = new Label(ResourceBundleKeys.LABEL_MILLISECOND.getValue(rb));
-            ListSpinner<Integer> endTimeMilliSecListSpinner = new ListSpinner<>(getMilliSecList())
+            endTimeMilliSecListSpinner = new ListSpinner<>(getMilliSecList())
                 .withValue(endSRTTime.millisecond);
                 
             HBox endTimeHBox = HBoxBuilder.create()
@@ -525,7 +550,7 @@ public class JSRT extends Application {
             
             // text
             Label textLabel = new Label(ResourceBundleKeys.LABEL_TEXT.getValue(rb));
-            TextArea textTextArea = new TextArea(StringUtils.join(srt.text,
+            textTextArea = new TextArea(StringUtils.join(srt.text,
                 System.getProperty("line.separator")));
             gridPane.add(textLabel, 0, 3);
             gridPane.add(textTextArea, 1, 3);
@@ -555,7 +580,34 @@ public class JSRT extends Application {
             updateButton.setOnAction(new EventHandler<ActionEvent>() {
                 @Override
                 public void handle(ActionEvent evt) {
-                    // TODO Auto-generated method stub
+                    try {
+                        SRTTime startSRTTime = new SRTTime(
+                            startTimeHourListSpinner.getValue(),
+                            startTimeMinListSpinner.getValue(),
+                            startTimeSecListSpinner.getValue(),
+                            startTimeMilliSecListSpinner.getValue());
+                        SRTTime endSRTTime = new SRTTime(
+                            endTimeHourListSpinner.getValue(),
+                            endTimeMinListSpinner.getValue(),
+                            endTimeSecListSpinner.getValue(),
+                            endTimeMilliSecListSpinner.getValue());
+
+                        SRT newSRT = new SRT(srt.number,
+                            SRTTimeFormat.fromSRTTime(startSRTTime),
+                            SRTTimeFormat.fromSRTTime(endSRTTime),
+                            textTextArea.getText());
+                        SRTEditor.updateSubtitle(srtInfo, newSRT);
+                        SRTWriter.write(srtFile, srtInfo);
+                        srtInfoData.clear();
+                        for (SRT s : srtInfo) {
+                            srtInfoData.add(new SRTWrapper(s));
+                        }
+                        close();
+                    } catch (Exception e) {
+                        Dialog.showThrowable(
+                            ResourceBundleKeys.DIALOG_ERROR_TITLE.getValue(rb),
+                            e.getMessage(), e, EditDialog.this);
+                    }
                 }
             });
             
@@ -566,6 +618,53 @@ public class JSRT extends Application {
                 .build();
 
             return vbox;
+        }
+    }
+    
+    /*
+     * This class is required because SRT's equals() and hashCode() only
+     * compare the subtitle number, but the tableViewer has a weird thing
+     * that calling srtInfoData.clear() and adding all those elements
+     * again doesn't seem to update the table.
+     */
+    private static class SRTWrapper {
+        public final SRT srt;
+        
+        public SRTWrapper(SRT srt) {
+            this.srt = srt;
+        }
+
+        @Override
+        public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + ((srt == null) ? 0 : srt.hashCode());
+            return result;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
+            SRTWrapper other = (SRTWrapper) obj;
+            if (srt == null) {
+                if (other.srt != null) {
+                    return false;
+                }
+            } else if (srt.number != other.srt.number ||
+                !srt.startTime.equals(other.srt.startTime) ||
+                !srt.endTime.equals(other.srt.endTime) ||
+                !srt.text.equals(other.srt.text)) {
+                return false;
+            }
+            return true;
         }
     }
 }

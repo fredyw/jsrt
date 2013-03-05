@@ -337,4 +337,19 @@ public class SRTEditorTest {
         srt = srtInfo.get(4);
         assertEquals("Foo3", StringUtils.join(srt.text, ""));
     }
+    
+    @Test
+    public void testUpdateSubtitle() throws Exception {
+        SRTInfo srtInfo = new SRTInfo();
+        for (int i = 1; i <= 4; i++) {
+            srtInfo.add(new SRT(i, SRTTimeFormat.parse("00:00:24,600"),
+                SRTTimeFormat.parse("00:00:26,600"), "Foo" + i));
+        }
+        SRTEditor.updateSubtitle(srtInfo, 
+            new SRT(2, SRTTimeFormat.parse("00:00:24,600"),
+                SRTTimeFormat.parse("00:00:26,600"), "test"));
+        
+        SRT s = srtInfo.get(2);
+        assertEquals("test", StringUtils.join(s.text, ""));
+    }
 }

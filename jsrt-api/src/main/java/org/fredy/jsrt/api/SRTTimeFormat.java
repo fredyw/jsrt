@@ -113,14 +113,17 @@ public class SRTTimeFormat {
             timeStr.append("0");
         }
         timeStr.append(Integer.toString(srtTime.hour));
+        timeStr.append(":");
         if (srtTime.minute < 10) {
             timeStr.append("0");
         }
         timeStr.append(Integer.toString(srtTime.minute));
+        timeStr.append(":");
         if (srtTime.second < 10) {
             timeStr.append("0");
         }
         timeStr.append(Integer.toString(srtTime.second));
+        timeStr.append(",");
         if (srtTime.second < 10) {
             timeStr.append("00");
         } else if (srtTime.second < 100) {
