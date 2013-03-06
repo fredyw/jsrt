@@ -13,7 +13,7 @@ jsrt uses Gradle build system (http://www.gradle.org/) and requires Java 7 and J
 The JAR will be created in dist directory.
 
 ### Running jsrt-gui ###
-java -jar dist/jsrt-gui-<version>.jar
+    java -jar dist/jsrt-gui-<version>.jar
 
 Examples
 --------
