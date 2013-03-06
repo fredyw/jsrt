@@ -61,6 +61,11 @@ public enum ResourceBundleKeys {
     DIALOG_ERROR_TITLE("dialog.error.title"),
     DIALOG_INSERT_TITLE("dialog.insert.title"),
     DIALOG_EDIT_TITLE("dialog.edit.title"),
+    DIALOG_CHECK_FOR_UPDATE_TITLE("dialog.checkforupdate.title"),
+    
+    DIALOG_CHECK_FOR_UPDATE_MESSAGE("dialog.checkforupdate.message"),
+    DIALOG_LATEST_VERSION_MESSAGE("dialog.latestversion.message"),
+    DIALOG_NEW_VERSION_MESSAGE("dialog.newversion.message"),
     
     FILECHOOSEREXT_FILTER("filechooserext.filter");
     

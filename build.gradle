@@ -4,6 +4,18 @@ defaultTasks = ["clean", "test", "jar", "dist"]
 
 def javafxLib = "jfxrt.jar"
 
+def getVersion() {
+    def versionPrefix = "version="
+    def version = ""
+    new File("jsrt-gui/src/main/resources/jsrt.properties").eachLine {
+        if (!it.startsWith(versionPrefix)) return
+        version = it.substring(versionPrefix.size())
+    }
+    return version
+}
+
+version = getVersion()
+
 def getJavaFXPath(def javafxLib) {
     def javaHome = System.env["JAVA_HOME"]
     if (javaHome == null) {

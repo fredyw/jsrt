@@ -71,6 +71,7 @@ import org.fredy.jsrt.api.SRTTimeFormat.SRTTime;
 import org.fredy.jsrt.api.SRTWriter;
 import org.fredy.jsrt.editor.SRTEditor;
 import org.fredy.jsrt.util.StringUtils;
+import org.fredy.jsrt.util.VersionUtils;
 
 /**
  * A GUI client code.
@@ -132,8 +133,21 @@ public class JSRT extends Application {
         checkForUpdateButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
+                String message = "";
                 try {
-                    // TODO Auto-generated method stub
+                    String latestVersion = VersionUtils.getLatestVersion();
+                    String currentVersion = ResourceBundleKeys.VERSION.getValue(rb);
+                    int comparison = VersionUtils.compare(currentVersion, latestVersion);
+                    if (comparison == 0) {
+                        message = ResourceBundleKeys.DIALOG_LATEST_VERSION_MESSAGE.getValue(rb);
+                    } else if(comparison == -1) {
+                        message = ResourceBundleKeys.DIALOG_NEW_VERSION_MESSAGE.getValue(rb);
+                    } else {
+                        // this shouldn't actually happen
+                        message = ResourceBundleKeys.DIALOG_LATEST_VERSION_MESSAGE.getValue(rb);
+                    }
+                    Dialog.showInfo(ResourceBundleKeys.DIALOG_CHECK_FOR_UPDATE_TITLE.getValue(rb),
+                        message, primaryStage);
                 } catch (Exception e) {
                     Dialog.showThrowable(
                         ResourceBundleKeys.DIALOG_ERROR_TITLE.getValue(rb),
@@ -259,7 +273,6 @@ public class JSRT extends Application {
             @Override
             public void handle(ActionEvent event) {
                 try {
-                    // TODO Auto-generated method stub
                     SRTWrapper sw = tableView.getSelectionModel().getSelectedItem();
                     if (sw == null) {
                         return;
