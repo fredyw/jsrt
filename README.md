@@ -6,7 +6,7 @@ SRT is a subtitle file format (http://en.wikipedia.org/wiki/.srt#SubRip_text_fil
 
 How to build
 ------------
-jsrt uses Gradle build system (http://www.gradle.org/) and requires Java 7 to build.
+jsrt uses Gradle build system (http://www.gradle.org/) and requires Java 7 and JavaFX 2 to build.
 
 ### Building jsrt JAR ###
     gradle
