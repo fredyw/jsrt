@@ -139,9 +139,11 @@ public class JSRT extends Application {
                     String currentVersion = ResourceBundleKeys.VERSION.getValue(rb);
                     int comparison = VersionUtils.compare(currentVersion, latestVersion);
                     if (comparison == 0) {
-                        message = ResourceBundleKeys.DIALOG_LATEST_VERSION_MESSAGE.getValue(rb);
+                        message = ResourceBundleKeys.DIALOG_LATEST_VERSION_MESSAGE.getValue(rb,
+                            latestVersion);
                     } else if(comparison == -1) {
-                        message = ResourceBundleKeys.DIALOG_NEW_VERSION_MESSAGE.getValue(rb);
+                        message = ResourceBundleKeys.DIALOG_NEW_VERSION_MESSAGE.getValue(rb,
+                            latestVersion);
                     } else {
                         // this shouldn't actually happen
                         message = ResourceBundleKeys.DIALOG_LATEST_VERSION_MESSAGE.getValue(rb);
