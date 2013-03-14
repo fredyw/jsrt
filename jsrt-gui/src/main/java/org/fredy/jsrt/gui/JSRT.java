@@ -24,6 +24,7 @@ package org.fredy.jsrt.gui;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
@@ -95,6 +96,9 @@ public class JSRT extends Application {
     private Button checkForUpdateButton;
     private FileChooser fileChooser;
     private TableView<SRTWrapper> tableView;
+    private ListSpinner<SRTTimeFormat.Type> timeTypeListSpinner;
+    private ListSpinner<Integer> timeValueListSpinner;
+    private Button updateAllTimesButton;
     
     public static void main(String[] args) {
         launch(args);
@@ -120,6 +124,13 @@ public class JSRT extends Application {
         
         primaryStage.setScene(scene);
         primaryStage.show();
+    }
+    
+    private void refreshTableView() {
+        srtInfoData.clear();
+        for (SRT s : srtInfo) {
+            srtInfoData.add(new SRTWrapper(s));
+        }
     }
     
     private Node createBottomPane() {
@@ -162,6 +173,9 @@ public class JSRT extends Application {
             .spacing(5)
             .padding(new Insets(10, 10, 10, 10))
             .children(createdByLabel, checkForUpdateButton)
+            .style("-fx-border-style: solid;"
+                + "-fx-border-width: 1;"
+                + "-fx-border-color: black")
             .build();
         
         VBox vbox = VBoxBuilder.create()
@@ -173,18 +187,34 @@ public class JSRT extends Application {
         return vbox;
     }
     
+    private ObservableList<Integer> getIntegerList() {
+        List<Integer> list = new ArrayList<>();
+        for (int i = -999; i <= 999; i++) {
+            list.add(i);
+        }
+        return FXCollections.observableList(list);
+    }
+    
     private Node createTopPane() {
-        filePathLabel = new Label("");
+        GridPane gridPane = GridPaneBuilder.create()
+            .hgap(10)
+            .vgap(10)
+            .padding(new Insets(10, 10, 10, 10))
+            .style("-fx-border-style: solid;"
+                + "-fx-border-width: 1;"
+                + "-fx-border-color: black")
+            .build();
         
+        Label subtitleLabel = LabelBuilder.create()
+            .text(ResourceBundleKeys.LABEL_SUBTITLE.getValue(rb))
+            .build();
+        gridPane.add(subtitleLabel, 0, 0);
+
         fileChooser = new FileChooser();
         FileChooser.ExtensionFilter extFilter =
             new FileChooser.ExtensionFilter(
                 ResourceBundleKeys.FILECHOOSEREXT_FILTER.getValue(rb), "*.srt");
         fileChooser.getExtensionFilters().add(extFilter);
-        
-        Label subtitleLabel = LabelBuilder.create()
-            .text(ResourceBundleKeys.LABEL_SUBTITLE.getValue(rb))
-            .build();
         
         openButton = ButtonBuilder.create()
             .text(ResourceBundleKeys.BUTTON_OPEN.getValue(rb))
@@ -198,12 +228,11 @@ public class JSRT extends Application {
                         return;
                     }
                     srtInfo = SRTReader.read(srtFile);
-                    // Always make sure to clear the srtInfoData
-                    srtInfoData.clear();
-                    for (SRT srt : srtInfo) {
-                        srtInfoData.add(new SRTWrapper(srt));
-                    }
-                    filePathLabel.setText("  [" + srtFile.getAbsolutePath() + "]"); 
+                    refreshTableView();
+                    filePathLabel.setText("  [" + srtFile.getAbsolutePath() + "]");
+                    timeTypeListSpinner.setDisable(false);
+                    timeValueListSpinner.setDisable(false);
+                    updateAllTimesButton.setDisable(false);
                 } catch (Exception e) {
                     Dialog.showThrowable(
                         ResourceBundleKeys.DIALOG_ERROR_TITLE.getValue(rb),
@@ -212,15 +241,65 @@ public class JSRT extends Application {
             }
         });
         
+        filePathLabel = new Label("");
+        
+        HBox hbox1 = HBoxBuilder.create()
+            .children(openButton, filePathLabel)
+            .spacing(10)
+            .build();
+        gridPane.add(hbox1, 1, 0);
+        
+        Label updateAllTimesLabel = new Label(ResourceBundleKeys.LABEL_UPDATE_ALL_TIMES.getValue(rb));
+        gridPane.add(updateAllTimesLabel, 0, 1);
+        
+        timeTypeListSpinner = new ListSpinner<>(FXCollections.observableList(
+            Arrays.asList(new SRTTimeFormat.Type[] {
+                SRTTimeFormat.Type.HOUR,
+                SRTTimeFormat.Type.MINUTE,
+                SRTTimeFormat.Type.SECOND,
+                SRTTimeFormat.Type.MILLISECOND
+            })))
+            .withValue(SRTTimeFormat.Type.SECOND);
+        timeTypeListSpinner.setDisable(true);
+        
+        timeValueListSpinner = new ListSpinner<>(getIntegerList())
+            .withValue(0);
+        timeValueListSpinner.setDisable(true);
+        
+        updateAllTimesButton = ButtonBuilder.create()
+            .text(ResourceBundleKeys.BUTTON_UPDATE_ALL.getValue(rb))
+            .disable(true)
+            .build();
+        updateAllTimesButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent evt) {
+                try {
+                    SRTEditor.updateTimes(srtInfo, timeTypeListSpinner.getValue(),
+                        timeValueListSpinner.getValue());
+                    refreshTableView();
+                } catch (Exception e) {
+                    Dialog.showThrowable(
+                        ResourceBundleKeys.DIALOG_ERROR_TITLE.getValue(rb),
+                        e.getMessage(), e, primaryStage);
+                }
+            }
+        });
+        
+        HBox hbox2 = HBoxBuilder.create()
+            .children(timeTypeListSpinner, timeValueListSpinner, updateAllTimesButton)
+            .spacing(10)
+            .build();
+        gridPane.add(hbox2, 1, 1);
+        
         HBox hbox = HBoxBuilder.create()
             .spacing(5)
             .padding(new Insets(10, 10, 10, 10))
-            .children(subtitleLabel, openButton, filePathLabel)
+            .children(gridPane)
             .build();
+        HBox.setHgrow(gridPane, Priority.ALWAYS);
         
         VBox vbox = VBoxBuilder.create()
             .spacing(5)
-            .padding(new Insets(10, 10, 10, 10))
             .children(hbox)
             .build();
         
@@ -303,10 +382,14 @@ public class JSRT extends Application {
                     }
                     SRTEditor.removeSubtitle(srtInfo, sw.srt.number);
                     SRTWriter.write(srtFile, srtInfo);
-                    srtInfoData.remove(sw);
+                    refreshTableView();
+                    
                     if (srtInfoData.size() == 0) {
                         editButton.setDisable(true);
                         removeButton.setDisable(true);
+                        timeTypeListSpinner.setDisable(true);
+                        timeValueListSpinner.setDisable(true);
+                        updateAllTimesButton.setDisable(true);
                     }
                 } catch (Exception e) {
                     Dialog.showThrowable(
@@ -642,10 +725,7 @@ public class JSRT extends Application {
                         execute(newSRT);
                         
                         SRTWriter.write(srtFile, srtInfo);
-                        srtInfoData.clear();
-                        for (SRT s : srtInfo) {
-                            srtInfoData.add(new SRTWrapper(s));
-                        }
+                        refreshTableView();
                         close();
                     } catch (Exception e) {
                         Dialog.showThrowable(

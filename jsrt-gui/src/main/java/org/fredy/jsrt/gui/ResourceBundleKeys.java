@@ -43,6 +43,7 @@ public enum ResourceBundleKeys {
     LABEL_MINUTE("label.minute"),
     LABEL_SECOND("label.second"),
     LABEL_MILLISECOND("label.millisecond"),
+    LABEL_UPDATE_ALL_TIMES("label.updatealltimes"),
     
     BUTTON_OPEN("button.open"),
     BUTTON_EDIT("button.edit"),
@@ -52,6 +53,7 @@ public enum ResourceBundleKeys {
     BUTTON_MOVE_DOWN("button.movedown"),
     BUTTON_CHECK_FOR_UPDATE("button.checkforupdate"),
     BUTTON_UPDATE("button.update"),
+    BUTTON_UPDATE_ALL("button.updateall"),
     
     TABLECOLUMN_NUMBER("tablecolumn.number"),
     TABLECOLUMN_START_TIME("tablecolumn.starttime"),
