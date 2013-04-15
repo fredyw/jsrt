@@ -17,7 +17,7 @@ The JAR will be created in dist directory.
 
 Screenshot
 ----------
-[![JSRT screenshot](https://raw.github.com/fredyw/jsrt/master/JSRT.png)]
+![JSRT screenshot](https://raw.github.com/fredyw/jsrt/master/JSRT.png)
 
 Examples
 --------
