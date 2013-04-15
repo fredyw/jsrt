@@ -15,6 +15,10 @@ The JAR will be created in dist directory.
 ### Running jsrt-gui ###
     java -jar dist/jsrt-gui-<version>.jar
 
+Screenshot
+----------
+[![JSRT screenshot](https://raw.github.com/fredyw/jsrt/master/JSRT.png)]
+
 Examples
 --------
 __in.srt__
