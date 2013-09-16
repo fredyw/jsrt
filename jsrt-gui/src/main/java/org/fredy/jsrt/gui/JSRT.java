@@ -276,6 +276,7 @@ public class JSRT extends Application {
                 try {
                     SRTEditor.updateTimes(srtInfo, timeTypeListSpinner.getValue(),
                         timeValueListSpinner.getValue());
+                    SRTWriter.write(srtFile, srtInfo);
                     refreshTableView();
                 } catch (Exception e) {
                     Dialog.showThrowable(
