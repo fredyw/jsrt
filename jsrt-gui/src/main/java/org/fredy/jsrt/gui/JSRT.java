@@ -40,9 +40,7 @@ import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonBuilder;
 import javafx.scene.control.Label;
-import javafx.scene.control.LabelBuilder;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.TableView;
@@ -52,18 +50,15 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.GridPaneBuilder;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.HBoxBuilder;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import javafx.scene.layout.VBoxBuilder;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.Callback;
-import jfxtras.labs.scene.control.ListSpinner;
-import name.antonsmirnov.javafx.dialog.Dialog;
+import jfxtras.scene.control.ListSpinner;
 
+import org.controlsfx.dialog.Dialogs;
 import org.fredy.jsrt.api.SRT;
 import org.fredy.jsrt.api.SRTInfo;
 import org.fredy.jsrt.api.SRTReader;
@@ -91,8 +86,6 @@ public class JSRT extends Application {
     private Button editButton;
     private Button insertButton;
     private Button removeButton;
-//    private Button upButton;
-//    private Button downButton;
     private Button checkForUpdateButton;
     private FileChooser fileChooser;
     private TableView<SRTWrapper> tableView;
@@ -134,13 +127,12 @@ public class JSRT extends Application {
     }
     
     private Node createBottomPane() {
-        Label createdByLabel = LabelBuilder.create()
-            .text(ResourceBundleKeys.LABEL_CREATED_BY.getValue(rb))
-            .build();
+        Label createdByLabel = new Label(
+            ResourceBundleKeys.LABEL_CREATED_BY.getValue(rb));
+       
+        checkForUpdateButton = new Button(
+            ResourceBundleKeys.BUTTON_CHECK_FOR_UPDATE.getValue(rb));
         
-        checkForUpdateButton = ButtonBuilder.create()
-            .text(ResourceBundleKeys.BUTTON_CHECK_FOR_UPDATE.getValue(rb))
-            .build();
         checkForUpdateButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
@@ -159,30 +151,33 @@ public class JSRT extends Application {
                         // this shouldn't actually happen
                         message = ResourceBundleKeys.DIALOG_LATEST_VERSION_MESSAGE.getValue(rb);
                     }
-                    Dialog.showInfo(ResourceBundleKeys.DIALOG_CHECK_FOR_UPDATE_TITLE.getValue(rb),
-                        message, primaryStage);
+                    Dialogs.create()
+                        .owner(primaryStage)
+                        .masthead(null)
+                        .title(ResourceBundleKeys.DIALOG_CHECK_FOR_UPDATE_TITLE.getValue(rb))
+                        .message(message)
+                        .showInformation();
                 } catch (Exception e) {
-                    Dialog.showThrowable(
-                        ResourceBundleKeys.DIALOG_ERROR_TITLE.getValue(rb),
-                        e.getMessage(), e, primaryStage);
+                    Dialogs.create()
+                        .owner(primaryStage)
+                        .masthead(null)
+                        .title(ResourceBundleKeys.DIALOG_ERROR_TITLE.getValue(rb))
+                        .message(e.getMessage())
+                        .showException(e);
                 }
             }
         });
         
-        HBox hbox = HBoxBuilder.create()
-            .spacing(5)
-            .padding(new Insets(10, 10, 10, 10))
-            .children(createdByLabel, checkForUpdateButton)
-            .style("-fx-border-style: solid;"
-                + "-fx-border-width: 1;"
-                + "-fx-border-color: black")
-            .build();
-        
-        VBox vbox = VBoxBuilder.create()
-            .spacing(5)
-            .padding(new Insets(10, 10, 10, 10))
-            .children(hbox)
-            .build();
+        HBox hbox = new HBox(createdByLabel, checkForUpdateButton);
+        hbox.setPadding(new Insets(10, 10, 10, 10));
+        hbox.setSpacing(5);
+        hbox.setStyle("-fx-border-style: solid;"
+            + "-fx-border-width: 1;"
+            + "-fx-border-color: black");    
+            
+        VBox vbox = new VBox(hbox);
+        vbox.setSpacing(5);
+        vbox.setPadding(new Insets(10, 10, 10, 10));
         
         return vbox;
     }
@@ -196,18 +191,15 @@ public class JSRT extends Application {
     }
     
     private Node createTopPane() {
-        GridPane gridPane = GridPaneBuilder.create()
-            .hgap(10)
-            .vgap(10)
-            .padding(new Insets(10, 10, 10, 10))
-            .style("-fx-border-style: solid;"
-                + "-fx-border-width: 1;"
-                + "-fx-border-color: black")
-            .build();
+        GridPane gridPane = new GridPane();
+        gridPane.setHgap(10);
+        gridPane.setVgap(10);
+        gridPane.setPadding(new Insets(10, 10, 10, 10));
+        gridPane.setStyle("-fx-border-style: solid;"
+            + "-fx-border-width: 1;"
+            + "-fx-border-color: black");
         
-        Label subtitleLabel = LabelBuilder.create()
-            .text(ResourceBundleKeys.LABEL_SUBTITLE.getValue(rb))
-            .build();
+        Label subtitleLabel = new Label(ResourceBundleKeys.LABEL_SUBTITLE.getValue(rb));
         gridPane.add(subtitleLabel, 0, 0);
 
         fileChooser = new FileChooser();
@@ -216,9 +208,7 @@ public class JSRT extends Application {
                 ResourceBundleKeys.FILECHOOSEREXT_FILTER.getValue(rb), "*.srt");
         fileChooser.getExtensionFilters().add(extFilter);
         
-        openButton = ButtonBuilder.create()
-            .text(ResourceBundleKeys.BUTTON_OPEN.getValue(rb))
-            .build();
+        openButton = new Button(ResourceBundleKeys.BUTTON_OPEN.getValue(rb));
         openButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent evt) {
@@ -234,19 +224,20 @@ public class JSRT extends Application {
                     timeValueListSpinner.setDisable(false);
                     updateAllTimesButton.setDisable(false);
                 } catch (Exception e) {
-                    Dialog.showThrowable(
-                        ResourceBundleKeys.DIALOG_ERROR_TITLE.getValue(rb),
-                        e.getMessage(), e, primaryStage);
+                    Dialogs.create()
+                        .owner(primaryStage)
+                        .masthead(null)
+                        .title(ResourceBundleKeys.DIALOG_ERROR_TITLE.getValue(rb))
+                        .message(e.getMessage())
+                        .showException(e);
                 }
             }
         });
         
         filePathLabel = new Label("");
         
-        HBox hbox1 = HBoxBuilder.create()
-            .children(openButton, filePathLabel)
-            .spacing(10)
-            .build();
+        HBox hbox1 = new HBox(openButton, filePathLabel);
+        hbox1.setSpacing(10);
         gridPane.add(hbox1, 1, 0);
         
         Label updateAllTimesLabel = new Label(ResourceBundleKeys.LABEL_UPDATE_ALL_TIMES.getValue(rb));
@@ -266,10 +257,9 @@ public class JSRT extends Application {
             .withValue(0);
         timeValueListSpinner.setDisable(true);
         
-        updateAllTimesButton = ButtonBuilder.create()
-            .text(ResourceBundleKeys.BUTTON_UPDATE_ALL.getValue(rb))
-            .disable(true)
-            .build();
+        updateAllTimesButton = new Button(ResourceBundleKeys.BUTTON_UPDATE_ALL.getValue(rb));
+        updateAllTimesButton.setDisable(true);
+        
         updateAllTimesButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent evt) {
@@ -279,30 +269,27 @@ public class JSRT extends Application {
                     SRTWriter.write(srtFile, srtInfo);
                     refreshTableView();
                 } catch (Exception e) {
-                    Dialog.showThrowable(
-                        ResourceBundleKeys.DIALOG_ERROR_TITLE.getValue(rb),
-                        e.getMessage(), e, primaryStage);
+                    Dialogs.create()
+                        .owner(primaryStage)
+                        .masthead(null)
+                        .title(ResourceBundleKeys.DIALOG_ERROR_TITLE.getValue(rb))
+                        .message(e.getMessage())
+                        .showException(e);
                 }
             }
         });
         
-        HBox hbox2 = HBoxBuilder.create()
-            .children(timeTypeListSpinner, timeValueListSpinner, updateAllTimesButton)
-            .spacing(10)
-            .build();
+        HBox hbox2 = new HBox(timeTypeListSpinner, timeValueListSpinner, updateAllTimesButton);
+        hbox2.setSpacing(10);
         gridPane.add(hbox2, 1, 1);
         
-        HBox hbox = HBoxBuilder.create()
-            .spacing(5)
-            .padding(new Insets(10, 10, 10, 10))
-            .children(gridPane)
-            .build();
+        HBox hbox = new HBox(gridPane);
+        hbox.setSpacing(5);
+        hbox.setPadding(new Insets(10, 10, 10, 10));
         HBox.setHgrow(gridPane, Priority.ALWAYS);
         
-        VBox vbox = VBoxBuilder.create()
-            .spacing(5)
-            .children(hbox)
-            .build();
+        VBox vbox = new VBox(hbox);
+        vbox.setSpacing(5);
         
         return vbox;
     }
@@ -315,9 +302,13 @@ public class JSRT extends Application {
             InsertDialog editDialog = new InsertDialog(rb, srt);
             editDialog.show();
         } catch (Exception e) {
-            Dialog.showThrowable(
-                ResourceBundleKeys.DIALOG_ERROR_TITLE.getValue(rb),
-                e.getMessage(), e, primaryStage);
+            Dialogs.create()
+                .owner(primaryStage)
+                .masthead(null)
+                .title(ResourceBundleKeys.DIALOG_ERROR_TITLE.getValue(rb))
+                .message(e.getMessage())
+                .showException(e);
+
         }
     }
     
@@ -327,18 +318,19 @@ public class JSRT extends Application {
             EditDialog editDialog = new EditDialog(rb, srt);
             editDialog.show();
         } catch (Exception e) {
-            Dialog.showThrowable(
-                ResourceBundleKeys.DIALOG_ERROR_TITLE.getValue(rb),
-                e.getMessage(), e, primaryStage);
+            Dialogs.create()
+                .owner(primaryStage)
+                .masthead(null)
+                .title(ResourceBundleKeys.DIALOG_ERROR_TITLE.getValue(rb))
+                .message(e.getMessage())
+                .showException(e);
         }
     }
     
     private Node createRightPane() {
-        editButton = ButtonBuilder.create()
-            .maxWidth(Double.MAX_VALUE)
-            .text(ResourceBundleKeys.BUTTON_EDIT.getValue(rb))
-            .disable(true)
-            .build();
+        editButton = new Button(ResourceBundleKeys.BUTTON_EDIT.getValue(rb));
+        editButton.setMaxWidth(Double.MAX_VALUE);
+        editButton.setDisable(true);
         editButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
@@ -346,11 +338,9 @@ public class JSRT extends Application {
             }
         });
         
-        insertButton = ButtonBuilder.create()
-            .maxWidth(Double.MAX_VALUE)
-            .text(ResourceBundleKeys.BUTTON_INSERT.getValue(rb))
-            .disable(true)
-            .build();
+        insertButton = new Button(ResourceBundleKeys.BUTTON_INSERT.getValue(rb));
+        insertButton.setMaxWidth(Double.MAX_VALUE);
+        insertButton.setDisable(true);
         insertButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
@@ -361,18 +351,19 @@ public class JSRT extends Application {
                     }
                     showInsertDialog(sw.srt);
                 } catch (Exception e) {
-                    Dialog.showThrowable(
-                        ResourceBundleKeys.DIALOG_ERROR_TITLE.getValue(rb),
-                        e.getMessage(), e, primaryStage);
+                    Dialogs.create()
+                        .owner(primaryStage)
+                        .masthead(null)
+                        .title(ResourceBundleKeys.DIALOG_ERROR_TITLE.getValue(rb))
+                        .message(e.getMessage())
+                        .showException(e);
                 }
             }
         });
         
-        removeButton = ButtonBuilder.create()
-            .maxWidth(Double.MAX_VALUE)
-            .text(ResourceBundleKeys.BUTTON_REMOVE.getValue(rb))
-            .disable(true)
-            .build();
+        removeButton = new Button(ResourceBundleKeys.BUTTON_REMOVE.getValue(rb));
+        removeButton.setMaxWidth(Double.MAX_VALUE);
+        removeButton.setDisable(true);
         removeButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
@@ -393,58 +384,23 @@ public class JSRT extends Application {
                         updateAllTimesButton.setDisable(true);
                     }
                 } catch (Exception e) {
-                    Dialog.showThrowable(
-                        ResourceBundleKeys.DIALOG_ERROR_TITLE.getValue(rb),
-                        e.getMessage(), e, primaryStage);
+                    Dialogs.create()
+                        .owner(primaryStage)
+                        .masthead(null)
+                        .title(ResourceBundleKeys.DIALOG_ERROR_TITLE.getValue(rb))
+                        .message(e.getMessage())
+                        .showException(e);
                 }
             }
         });
         
-//        upButton = ButtonBuilder.create()
-//            .maxWidth(Double.MAX_VALUE)
-//            .text(ResourceBundleKeys.BUTTON_MOVE_UP.getValue(rb))
-//            .build();
-//        upButton.setOnAction(new EventHandler<ActionEvent>() {
-//            @Override
-//            public void handle(ActionEvent event) {
-//                try {
-//                    // TODO Auto-generated method stub
-//                } catch (Exception e) {
-//                    Dialog.showThrowable(
-//                        ResourceBundleKeys.DIALOG_ERROR_TITLE.getValue(rb),
-//                        e.getMessage(), e, primaryStage);
-//                }
-//            }
-//        });
-//        
-//        downButton = ButtonBuilder.create()
-//            .maxWidth(Double.MAX_VALUE)
-//            .text(ResourceBundleKeys.BUTTON_MOVE_DOWN.getValue(rb))
-//            .build();
-//        downButton.setOnAction(new EventHandler<ActionEvent>() {
-//            @Override
-//            public void handle(ActionEvent event) {
-//                try {
-//                    // TODO Auto-generated method stub
-//                } catch (Exception e) {
-//                    Dialog.showThrowable(
-//                        ResourceBundleKeys.DIALOG_ERROR_TITLE.getValue(rb),
-//                        e.getMessage(), e, primaryStage);
-//                }
-//            }
-//        });
-        
-        VBox vbox = VBoxBuilder.create()
-            .spacing(5)
-            .padding(new Insets(10, 10, 10, 10))
-            .children(editButton, insertButton, removeButton)
-            .build();
+        VBox vbox = new VBox(editButton, insertButton, removeButton);
+        vbox.setSpacing(5);
+        vbox.setPadding(new Insets(10, 10, 10, 10));
         
         VBox.setMargin(editButton, new Insets(0, 0, 5, 0));
         VBox.setMargin(insertButton, new Insets(0, 0, 5, 0));
         VBox.setMargin(removeButton, new Insets(0, 0, 5, 0));
-//        VBox.setMargin(upButton, new Insets(0, 0, 5, 0));
-//        VBox.setMargin(downButton, new Insets(0, 0, 5, 0));
         
         return vbox;
     }
@@ -520,11 +476,9 @@ public class JSRT extends Application {
         tableView.getColumns().addAll(numberTableColumn, startTimeTableColumn,
             endTimeTableColumn, textTableColumn);
         
-        VBox vbox = VBoxBuilder.create()
-            .spacing(5)
-            .padding(new Insets(10, 10, 10, 10))
-            .children(tableView)
-            .build();
+        VBox vbox = new VBox(tableView);
+        vbox.setSpacing(5);
+        vbox.setPadding(new Insets(10, 10, 10, 10));
         VBox.setVgrow(tableView, Priority.ALWAYS);
         
         return vbox;
@@ -595,14 +549,13 @@ public class JSRT extends Application {
         }
         
         private Node createCenterPane() {
-            GridPane gridPane = GridPaneBuilder.create()
-                .hgap(10)
-                .vgap(10)
-                .padding(new Insets(10, 10, 10, 10))
-                .style("-fx-border-style: solid;"
-                    + "-fx-border-width: 1;"
-                    + "-fx-border-color: black")
-                .build();
+            GridPane gridPane = new GridPane();
+            gridPane.setHgap(10);
+            gridPane.setVgap(10);
+            gridPane.setPadding(new Insets(10, 10, 10, 10));
+            gridPane.setStyle("-fx-border-style: solid;"
+                + "-fx-border-width: 1;"
+                + "-fx-border-color: black");
             
             // number
             Label numberLabel = new Label(ResourceBundleKeys.LABEL_NUMBER.getValue(rb));
@@ -631,15 +584,14 @@ public class JSRT extends Application {
             startTimeMilliSecListSpinner = new ListSpinner<>(getMilliSecList())
                 .withValue(startTimeSRTTime.millisecond);
                 
-            HBox startTimeHBox = HBoxBuilder.create()
-                .spacing(5)
-                .padding(new Insets(10, 10, 10, 10))
-                .children(
-                    startTimeHourLabel, startTimeHourListSpinner,
-                    startTimeMinLabel, startTimeMinListSpinner,
-                    startTimeSecLabel, startTimeSecListSpinner,
-                    startTimeilliSecLabel, startTimeMilliSecListSpinner)
-                .build();
+            HBox startTimeHBox = new HBox(
+                startTimeHourLabel, startTimeHourListSpinner,
+                startTimeMinLabel, startTimeMinListSpinner,
+                startTimeSecLabel, startTimeSecListSpinner,
+                startTimeilliSecLabel, startTimeMilliSecListSpinner);
+            startTimeHBox.setSpacing(5);
+            startTimeHBox.setPadding(new Insets(10, 10, 10, 10));
+            
             gridPane.add(startTimeLabel, 0, 1);
             gridPane.add(startTimeHBox, 1, 1);
             
@@ -663,15 +615,14 @@ public class JSRT extends Application {
             endTimeMilliSecListSpinner = new ListSpinner<>(getMilliSecList())
                 .withValue(endSRTTime.millisecond);
                 
-            HBox endTimeHBox = HBoxBuilder.create()
-                .spacing(5)
-                .padding(new Insets(10, 10, 10, 10))
-                .children(
-                    endTimeHourLabel, endTimeHourListSpinner,
-                    endTimeMinLabel, endTimeMinListSpinner,
-                    endTimeSecLabel, endTimeSecListSpinner,
-                    endTImeMilliSecLabel, endTimeMilliSecListSpinner)
-                .build();
+            HBox endTimeHBox = new HBox(
+                endTimeHourLabel, endTimeHourListSpinner,
+                endTimeMinLabel, endTimeMinListSpinner,
+                endTimeSecLabel, endTimeSecListSpinner,
+                endTImeMilliSecLabel, endTimeMilliSecListSpinner); 
+            endTimeHBox.setSpacing(5);
+            endTimeHBox.setPadding(new Insets(10, 10, 10, 10));
+            
             gridPane.add(endTimeLabel, 0, 2);
             gridPane.add(endTimeHBox, 1, 2);
             
@@ -685,18 +636,14 @@ public class JSRT extends Application {
             GridPane.setVgrow(textTextArea, Priority.ALWAYS);
             GridPane.setHgrow(textTextArea, Priority.ALWAYS);
             
-            HBox hbox = HBoxBuilder.create()
-                .spacing(5)
-                .padding(new Insets(10, 10, 10, 10))
-                .children(gridPane)
-                .build();
+            HBox hbox = new HBox(gridPane);
+            hbox.setSpacing(5);
+            hbox.setPadding(new Insets(10, 10, 10, 10));
             HBox.setHgrow(gridPane, Priority.ALWAYS);
             
-            VBox vbox = VBoxBuilder.create()
-                .spacing(5)
-                .padding(new Insets(10, 10, 10, 10))
-                .children(hbox)
-                .build();
+            VBox vbox = new VBox(hbox);
+            vbox.setSpacing(5);
+            vbox.setPadding(new Insets(10, 10, 10, 10));
             VBox.setVgrow(hbox, Priority.ALWAYS);
             
             return vbox;
@@ -729,18 +676,19 @@ public class JSRT extends Application {
                         refreshTableView();
                         close();
                     } catch (Exception e) {
-                        Dialog.showThrowable(
-                            ResourceBundleKeys.DIALOG_ERROR_TITLE.getValue(rb),
-                            e.getMessage(), e, BaseDialog.this);
+                        Dialogs.create()
+                            .owner(BaseDialog.this)
+                            .masthead(null)
+                            .title(ResourceBundleKeys.DIALOG_ERROR_TITLE.getValue(rb))
+                            .message(e.getMessage())
+                            .showException(e);
                     }
                 }
             });
             
-            VBox vbox = VBoxBuilder.create()
-                .spacing(5)
-                .padding(new Insets(0, 20, 20, 20))
-                .children(btn)
-                .build();
+            VBox vbox = new VBox(btn);
+            vbox.setSpacing(5);
+            vbox.setPadding(new Insets(0, 20, 20, 20));
 
             return vbox;
         }

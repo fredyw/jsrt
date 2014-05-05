@@ -2,25 +2,14 @@ def distDir = "dist"
 
 defaultTasks = ["clean", "test", "jar", "dist"]
 
-def javafxLib = "jfxrt.jar"
-
-def getJavaFXPath(def javafxLib) {
-    def javaHome = System.env["JAVA_HOME"]
-    if (javaHome == null) {
-        throw new RuntimeException("JAVA_HOME environment variable must be set")
-    }
-    def javafxrt = "jre" + File.separator + "lib" + File.separator + javafxLib
-    return new File(javaHome, javafxrt).absolutePath
-}
-
 subprojects {
     apply plugin: "java"
     apply plugin: "eclipse"
-    sourceCompatibility = 1.7
-    targetCompatibility = 1.7
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
     
     // all the stuff below should be in a seperate function, but Groovy doesn't
-    // allow calling a function within a clsoure
+    // allow calling a function within a closure
     def versionPrefix = "version="
     def ver = ""
     new File(rootDir, "jsrt-gui/src/main/resources/jsrt.properties").eachLine {
@@ -28,23 +17,22 @@ subprojects {
         ver = it.substring(versionPrefix.size())
     }
     version = ver
+    new File("VERSION.txt").withWriter { out ->
+        out.writeLine(version)
+    } 
     
     repositories {
         mavenCentral()
     }
 
     dependencies {
-        compile files(getJavaFXPath(javafxLib))
-
-        testCompile "junit:junit:4.8.2"
+        testCompile "junit:junit:4.11"
     }
 
     jar {
         dependsOn configurations.runtime
         from {
-            configurations.runtime.findAll { !it.name.contains(javafxLib) }.collect { 
-                it.isDirectory() ? it : zipTree(it)
-            }
+            configurations.runtime.collect { it.isDirectory() ? it : zipTree(it) }
         }
         from sourceSets.main.allJava
     }
@@ -53,14 +41,13 @@ subprojects {
 project(":jsrt-gui") {
     dependencies {
         compile project(":jsrt-api")
-        compile "org.jfxtras:jfxtras-labs:2.2-r4"
-        compile fileTree(dir: "lib", include: "*.jar")
+        compile "org.controlsfx:controlsfx:8.0.5"
+        compile "org.jfxtras:jfxtras-controls:8.0-r1"
     }
 
     jar {
         manifest {
             attributes "Main-Class": "org.fredy.jsrt.gui.JSRT"
-            attributes "Class-Path": getJavaFXPath(javafxLib)
         }
     }
 }
