@@ -72,5 +72,7 @@ task dist << {
             }
         }
     }
+    def ver = new File("VERSION.txt").text.trim()
+    ant.zip(destfile: "jsrt-${ver}.zip", basedir: distDir)
 }
 
