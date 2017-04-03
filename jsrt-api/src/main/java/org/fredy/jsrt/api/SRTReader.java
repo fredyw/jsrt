@@ -49,6 +49,10 @@ public class SRTReader {
         public String readLine() throws IOException {
             String line = reader.readLine();
             lineNumber++;
+            // remove the BOM
+            if (line != null && lineNumber == 1) {
+                return line.replace("\uFEFF", "");
+            }
             return line;
         }
 

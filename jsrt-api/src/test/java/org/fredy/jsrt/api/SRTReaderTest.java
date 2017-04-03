@@ -54,6 +54,48 @@ public class SRTReaderTest {
         assertEquals("Bar Foo", srt.text.get(1));
     }
 
+    @Test
+    public void testReadWithMultipleEmptyLines() throws Exception {
+        SRTInfo info = SRTReader.read(new File("src/test/resources/good_with_multiple_empty_lines.srt"));
+
+        assertEquals(2, info.size());
+        Iterator<SRT> iter = info.iterator();
+        SRT srt = iter.next();
+        assertEquals(1, srt.number);
+        assertEquals("Hello World", srt.text.get(0));
+        assertEquals("00:00:20,000", SRTTimeFormat.format(srt.startTime));
+        assertEquals("00:00:24,400", SRTTimeFormat.format(srt.endTime));
+        assertEquals("Bye World", srt.text.get(1));
+
+        srt = iter.next();
+        assertEquals(2, srt.number);
+        assertEquals("00:00:24,600", SRTTimeFormat.format(srt.startTime));
+        assertEquals("00:00:27,800", SRTTimeFormat.format(srt.endTime));
+        assertEquals("Foo Bar", srt.text.get(0));
+        assertEquals("Bar Foo", srt.text.get(1));
+    }
+
+    @Test
+    public void testReadWithBOM() throws Exception {
+        SRTInfo info = SRTReader.read(new File("src/test/resources/good_with_bom.srt"));
+
+        assertEquals(2, info.size());
+        Iterator<SRT> iter = info.iterator();
+        SRT srt = iter.next();
+        assertEquals(1, srt.number);
+        assertEquals("Hello World", srt.text.get(0));
+        assertEquals("00:00:20,000", SRTTimeFormat.format(srt.startTime));
+        assertEquals("00:00:24,400", SRTTimeFormat.format(srt.endTime));
+        assertEquals("Bye World", srt.text.get(1));
+
+        srt = iter.next();
+        assertEquals(2, srt.number);
+        assertEquals("00:00:24,600", SRTTimeFormat.format(srt.startTime));
+        assertEquals("00:00:27,800", SRTTimeFormat.format(srt.endTime));
+        assertEquals("Foo Bar", srt.text.get(0));
+        assertEquals("Bar Foo", srt.text.get(1));
+    }
+
     @Test(expected = SRTReaderException.class)
     public void testReadFileDoesntExist() {
         SRTReader.read(new File("foo.srt"));
@@ -90,7 +132,7 @@ public class SRTReaderTest {
     }
 
     @Test(expected = InvalidSRTException.class)
-    public void testReadInvalidSRT4() {
+    public void testReadInvalidMissingSubtitle() {
         SRTReader.read(new File("src/test/resources/missing_subtitle.srt"));
     }
 }
