@@ -22,13 +22,6 @@
  */
 package org.fredy.jsrt.gui;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
-import java.util.ResourceBundle;
-
 import javafx.application.Application;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.value.ObservableValue;
@@ -39,6 +32,8 @@ import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
@@ -57,8 +52,6 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 import jfxtras.scene.control.ListSpinner;
-
-import org.controlsfx.dialog.Dialogs;
 import org.fredy.jsrt.api.SRT;
 import org.fredy.jsrt.api.SRTInfo;
 import org.fredy.jsrt.api.SRTReader;
@@ -68,6 +61,13 @@ import org.fredy.jsrt.api.SRTWriter;
 import org.fredy.jsrt.editor.SRTEditor;
 import org.fredy.jsrt.util.StringUtils;
 import org.fredy.jsrt.util.VersionUtils;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 /**
  * A GUI client code.
@@ -125,7 +125,21 @@ public class JSRT extends Application {
             srtInfoData.add(new SRTWrapper(s));
         }
     }
-    
+
+    private static void showInfo(String title, String text) {
+        Alert alert = new Alert(AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(text);
+        alert.showAndWait();
+    }
+
+    private static void showError(String title, String text) {
+        Alert alert = new Alert(AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(text);
+        alert.showAndWait();
+    }
+
     private Node createBottomPane() {
         Label createdByLabel = new Label(
             ResourceBundleKeys.LABEL_CREATED_BY.getValue(rb));
@@ -133,38 +147,25 @@ public class JSRT extends Application {
         checkForUpdateButton = new Button(
             ResourceBundleKeys.BUTTON_CHECK_FOR_UPDATE.getValue(rb));
         
-        checkForUpdateButton.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                String message = "";
-                try {
-                    String latestVersion = VersionUtils.getLatestVersion();
-                    String currentVersion = ResourceBundleKeys.VERSION.getValue(rb);
-                    int comparison = VersionUtils.compare(currentVersion, latestVersion);
-                    if (comparison == 0) {
-                        message = ResourceBundleKeys.DIALOG_LATEST_VERSION_MESSAGE.getValue(rb,
-                            latestVersion);
-                    } else if(comparison == -1) {
-                        message = ResourceBundleKeys.DIALOG_NEW_VERSION_MESSAGE.getValue(rb,
-                            latestVersion);
-                    } else {
-                        // this shouldn't actually happen
-                        message = ResourceBundleKeys.DIALOG_LATEST_VERSION_MESSAGE.getValue(rb);
-                    }
-                    Dialogs.create()
-                        .owner(primaryStage)
-                        .masthead(null)
-                        .title(ResourceBundleKeys.DIALOG_CHECK_FOR_UPDATE_TITLE.getValue(rb))
-                        .message(message)
-                        .showInformation();
-                } catch (Exception e) {
-                    Dialogs.create()
-                        .owner(primaryStage)
-                        .masthead(null)
-                        .title(ResourceBundleKeys.DIALOG_ERROR_TITLE.getValue(rb))
-                        .message(e.getMessage())
-                        .showException(e);
+        checkForUpdateButton.setOnAction(event -> {
+            String message = "";
+            try {
+                String latestVersion = VersionUtils.getLatestVersion();
+                String currentVersion = ResourceBundleKeys.VERSION.getValue(rb);
+                int comparison = VersionUtils.compare(currentVersion, latestVersion);
+                if (comparison == 0) {
+                    message = ResourceBundleKeys.DIALOG_LATEST_VERSION_MESSAGE.getValue(rb,
+                        latestVersion);
+                } else if(comparison == -1) {
+                    message = ResourceBundleKeys.DIALOG_NEW_VERSION_MESSAGE.getValue(rb,
+                        latestVersion);
+                } else {
+                    // this shouldn't actually happen
+                    message = ResourceBundleKeys.DIALOG_LATEST_VERSION_MESSAGE.getValue(rb);
                 }
+                showInfo(ResourceBundleKeys.DIALOG_CHECK_FOR_UPDATE_TITLE.getValue(rb), message);
+            } catch (Exception e) {
+                showError(ResourceBundleKeys.DIALOG_ERROR_TITLE.getValue(rb), e.getMessage());
             }
         });
         
@@ -209,28 +210,20 @@ public class JSRT extends Application {
         fileChooser.getExtensionFilters().add(extFilter);
         
         openButton = new Button(ResourceBundleKeys.BUTTON_OPEN.getValue(rb));
-        openButton.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent evt) {
-                try {
-                    srtFile = fileChooser.showOpenDialog(primaryStage);
-                    if (srtFile == null) {
-                        return;
-                    }
-                    srtInfo = SRTReader.read(srtFile);
-                    refreshTableView();
-                    filePathLabel.setText("  [" + srtFile.getAbsolutePath() + "]");
-                    timeTypeListSpinner.setDisable(false);
-                    timeValueListSpinner.setDisable(false);
-                    updateAllTimesButton.setDisable(false);
-                } catch (Exception e) {
-                    Dialogs.create()
-                        .owner(primaryStage)
-                        .masthead(null)
-                        .title(ResourceBundleKeys.DIALOG_ERROR_TITLE.getValue(rb))
-                        .message(e.getMessage())
-                        .showException(e);
+        openButton.setOnAction(evt -> {
+            try {
+                srtFile = fileChooser.showOpenDialog(primaryStage);
+                if (srtFile == null) {
+                    return;
                 }
+                srtInfo = SRTReader.read(srtFile);
+                refreshTableView();
+                filePathLabel.setText("  [" + srtFile.getAbsolutePath() + "]");
+                timeTypeListSpinner.setDisable(false);
+                timeValueListSpinner.setDisable(false);
+                updateAllTimesButton.setDisable(false);
+            } catch (Exception e) {
+                showError(ResourceBundleKeys.DIALOG_ERROR_TITLE.getValue(rb), e.getMessage());
             }
         });
         
@@ -269,12 +262,7 @@ public class JSRT extends Application {
                     SRTWriter.write(srtFile, srtInfo);
                     refreshTableView();
                 } catch (Exception e) {
-                    Dialogs.create()
-                        .owner(primaryStage)
-                        .masthead(null)
-                        .title(ResourceBundleKeys.DIALOG_ERROR_TITLE.getValue(rb))
-                        .message(e.getMessage())
-                        .showException(e);
+                   showError(ResourceBundleKeys.DIALOG_ERROR_TITLE.getValue(rb), e.getMessage());
                 }
             }
         });
@@ -302,13 +290,7 @@ public class JSRT extends Application {
             InsertDialog editDialog = new InsertDialog(rb, srt);
             editDialog.show();
         } catch (Exception e) {
-            Dialogs.create()
-                .owner(primaryStage)
-                .masthead(null)
-                .title(ResourceBundleKeys.DIALOG_ERROR_TITLE.getValue(rb))
-                .message(e.getMessage())
-                .showException(e);
-
+            showError(ResourceBundleKeys.DIALOG_ERROR_TITLE.getValue(rb), e.getMessage());
         }
     }
     
@@ -318,12 +300,7 @@ public class JSRT extends Application {
             EditDialog editDialog = new EditDialog(rb, srt);
             editDialog.show();
         } catch (Exception e) {
-            Dialogs.create()
-                .owner(primaryStage)
-                .masthead(null)
-                .title(ResourceBundleKeys.DIALOG_ERROR_TITLE.getValue(rb))
-                .message(e.getMessage())
-                .showException(e);
+            showError(ResourceBundleKeys.DIALOG_ERROR_TITLE.getValue(rb), e.getMessage());
         }
     }
     
@@ -351,12 +328,7 @@ public class JSRT extends Application {
                     }
                     showInsertDialog(sw.srt);
                 } catch (Exception e) {
-                    Dialogs.create()
-                        .owner(primaryStage)
-                        .masthead(null)
-                        .title(ResourceBundleKeys.DIALOG_ERROR_TITLE.getValue(rb))
-                        .message(e.getMessage())
-                        .showException(e);
+                    showError(ResourceBundleKeys.DIALOG_ERROR_TITLE.getValue(rb), e.getMessage());
                 }
             }
         });
@@ -384,12 +356,7 @@ public class JSRT extends Application {
                         updateAllTimesButton.setDisable(true);
                     }
                 } catch (Exception e) {
-                    Dialogs.create()
-                        .owner(primaryStage)
-                        .masthead(null)
-                        .title(ResourceBundleKeys.DIALOG_ERROR_TITLE.getValue(rb))
-                        .message(e.getMessage())
-                        .showException(e);
+                    showError(ResourceBundleKeys.DIALOG_ERROR_TITLE.getValue(rb), e.getMessage());
                 }
             }
         });
@@ -651,38 +618,30 @@ public class JSRT extends Application {
         
         private Node createBottomPane() {
             Button btn = new Button(getButtonText());
-            btn.setOnAction(new EventHandler<ActionEvent>() {
-                @Override
-                public void handle(ActionEvent evt) {
-                    try {
-                        SRTTime startSRTTime = new SRTTime(
-                            startTimeHourListSpinner.getValue(),
-                            startTimeMinListSpinner.getValue(),
-                            startTimeSecListSpinner.getValue(),
-                            startTimeMilliSecListSpinner.getValue());
-                        SRTTime endSRTTime = new SRTTime(
-                            endTimeHourListSpinner.getValue(),
-                            endTimeMinListSpinner.getValue(),
-                            endTimeSecListSpinner.getValue(),
-                            endTimeMilliSecListSpinner.getValue());
+            btn.setOnAction(evt -> {
+                try {
+                    SRTTime startSRTTime = new SRTTime(
+                        startTimeHourListSpinner.getValue(),
+                        startTimeMinListSpinner.getValue(),
+                        startTimeSecListSpinner.getValue(),
+                        startTimeMilliSecListSpinner.getValue());
+                    SRTTime endSRTTime = new SRTTime(
+                        endTimeHourListSpinner.getValue(),
+                        endTimeMinListSpinner.getValue(),
+                        endTimeSecListSpinner.getValue(),
+                        endTimeMilliSecListSpinner.getValue());
 
-                        SRT newSRT = new SRT(srt.number,
-                            SRTTimeFormat.fromSRTTime(startSRTTime),
-                            SRTTimeFormat.fromSRTTime(endSRTTime),
-                            textTextArea.getText());
-                        execute(newSRT);
-                        
-                        SRTWriter.write(srtFile, srtInfo);
-                        refreshTableView();
-                        close();
-                    } catch (Exception e) {
-                        Dialogs.create()
-                            .owner(BaseDialog.this)
-                            .masthead(null)
-                            .title(ResourceBundleKeys.DIALOG_ERROR_TITLE.getValue(rb))
-                            .message(e.getMessage())
-                            .showException(e);
-                    }
+                    SRT newSRT = new SRT(srt.number,
+                        SRTTimeFormat.fromSRTTime(startSRTTime),
+                        SRTTimeFormat.fromSRTTime(endSRTTime),
+                        textTextArea.getText());
+                    execute(newSRT);
+
+                    SRTWriter.write(srtFile, srtInfo);
+                    refreshTableView();
+                    close();
+                } catch (Exception e) {
+                    showError(ResourceBundleKeys.DIALOG_ERROR_TITLE.getValue(rb), e.getMessage());
                 }
             });
             

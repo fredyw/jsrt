@@ -4,7 +4,6 @@ defaultTasks = ["clean", "test", "jar", "dist"]
 
 subprojects {
     apply plugin: "java"
-    apply plugin: "eclipse"
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
     
@@ -41,8 +40,7 @@ subprojects {
 project(":jsrt-gui") {
     dependencies {
         compile project(":jsrt-api")
-        compile "org.controlsfx:controlsfx:8.0.5"
-        compile "org.jfxtras:jfxtras-controls:8.0-r1"
+        compile "org.jfxtras:jfxtras-controls:8.0-r5"
     }
 
     jar {
@@ -58,21 +56,25 @@ project(":jsrt-examples") {
     }
 }
 
-task clean << {
-    delete distDir
+task clean {
+    doLast {
+        delete distDir
+    }
 }
 
-task dist << {
-    def d = mkdir(distDir)
-    subprojects.each { subproject ->
-        subproject.tasks.jar.each { archiveTask ->
-            copy {
-                from archiveTask.archivePath
-                into d
+task dist {
+    doLast {
+        def d = mkdir(distDir)
+        subprojects.each { subproject ->
+            subproject.tasks.jar.each { archiveTask ->
+                copy {
+                    from archiveTask.archivePath
+                    into d
+                }
             }
         }
+        def ver = new File("VERSION.txt").text.trim()
+        ant.zip(destfile: "jsrt-${ver}.zip", basedir: distDir)
     }
-    def ver = new File("VERSION.txt").text.trim()
-    ant.zip(destfile: "jsrt-${ver}.zip", basedir: distDir)
 }
 
