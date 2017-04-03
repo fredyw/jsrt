@@ -7,7 +7,7 @@ subprojects {
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
     
-    // all the stuff below should be in a seperate function, but Groovy doesn't
+    // all the stuff below should be in a separate function, but Groovy doesn't
     // allow calling a function within a closure
     def versionPrefix = "version="
     def ver = ""
