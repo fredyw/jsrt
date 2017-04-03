@@ -1,7 +1,7 @@
 # jsrt
 
 A small SRT parser and editor in Java.
-[SRT]((http://en.wikipedia.org/wiki/.srt#SubRip_text_file_format)) is a subtitle file format.
+[SRT](http://en.wikipedia.org/wiki/.srt#SubRip_text_file_format) is a subtitle file format.
 
 ## How to Build
 jsrt uses [Gradle](http://www.gradle.org/) build system and requires Java 8 to build.
