@@ -38,9 +38,25 @@ import java.util.List;
  * @author fredy
  */
 public class SRTReader {
-    public SRTReader() {
+    private static class BufferedLineReader {
+        private final BufferedReader reader;
+        private long lineNumber;
+
+        public BufferedLineReader(BufferedReader reader) {
+            this.reader = reader;
+        }
+
+        public String readLine() throws IOException {
+            String line = reader.readLine();
+            lineNumber++;
+            return line;
+        }
+
+        public long getLineNumber() {
+            return lineNumber;
+        }
     }
-    
+
     /**
      * Reads an SRT file and transforming it into SRT object.
      * 
@@ -56,11 +72,12 @@ public class SRTReader {
         if (!srtFile.isFile()) {
             throw new SRTReaderException(srtFile.getAbsolutePath() + " is not a regular file");
         }
-        
+
         SRTInfo srtInfo = new SRTInfo();
         try (BufferedReader br = new BufferedReader(new FileReader(srtFile))) {
+            BufferedLineReader reader = new BufferedLineReader(br);
             while (true) {
-                srtInfo.add(parse(br));
+                srtInfo.add(parse(reader));
             }
         } catch (EOFException e) {
             // Do nothing
@@ -71,8 +88,13 @@ public class SRTReader {
         return srtInfo;
     }
     
-    private static SRT parse(BufferedReader br) throws IOException, EOFException {
-        String nString = br.readLine();
+    private static SRT parse(BufferedLineReader reader) throws IOException, EOFException {
+        String nString = reader.readLine();
+        // ignore all empty lines
+        while (nString != null && nString.isEmpty()) {
+            nString = reader.readLine();
+        }
+
         if (nString == null) {
             throw new EOFException();
         }
@@ -82,38 +104,51 @@ public class SRTReader {
             subtitleNumber = Integer.parseInt(nString);
         } catch (NumberFormatException e) {
             throw new InvalidSRTException(
-                nString + " has an invalid subtitle number");
+                String.format(
+                    "[Line: %d] %s has an invalid subtitle number",
+                    reader.getLineNumber(),
+                    nString));
         }
-        
-        String tString = br.readLine();
+
+        String tString = reader.readLine();
         if (tString == null) {
             throw new InvalidSRTException(
-                "Start time and end time information is not present");
+                String.format(
+                    "[Line: %d] Start time and end time information is not present",
+                    reader.getLineNumber()));
         }
         String[] times = tString.split(SRTTimeFormat.TIME_DELIMITER);
         if (times.length != 2) {
             throw new InvalidSRTException(
-                tString + " needs to be seperated with " + SRTTimeFormat.TIME_DELIMITER);
+                String.format(
+                    "[Line: %d] %s needs to be separated with %s",
+                    reader.getLineNumber(),
+                    tString,
+                    SRTTimeFormat.TIME_DELIMITER));
         }
         Date startTime = null;
         try {
             startTime = SRTTimeFormat.parse(times[0]);
         } catch (ParseException e) {
-            throw new InvalidSRTException(
-                times[0] + " has an invalid time format");
+            throw new InvalidSRTException(String.format(
+                "[Line: %d] %s has an invalid start time format",
+                reader.getLineNumber(),
+                times[0]));
         }
         
         Date endTime = null;
         try {
             endTime = SRTTimeFormat.parse(times[1]);
         } catch (ParseException e) {
-            throw new InvalidSRTException(
-                times[1] + " has an invalid time format");
+            throw new InvalidSRTException(String.format(
+                "[Line: %d] %s has an invalid end time format",
+                reader.getLineNumber(),
+                times[1]));
         }
         
         List<String> subtitleLines = new ArrayList<>();
         String line;
-        while ((line = br.readLine()) != null) {
+        while ((line = reader.readLine()) != null) {
             if (line.trim().isEmpty()) {
                 break;
             }
@@ -121,7 +156,9 @@ public class SRTReader {
         }
         
         if (subtitleLines.size() == 0) {
-            throw new InvalidSRTException("Missing subtitle text information");
+            throw new InvalidSRTException(String.format(
+                "[Line: %d] Missing subtitle text information",
+                reader.getLineNumber()));
         }
         
         return new SRT(subtitleNumber, startTime, endTime, subtitleLines);

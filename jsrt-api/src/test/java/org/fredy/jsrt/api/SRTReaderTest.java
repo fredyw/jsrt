@@ -22,84 +22,75 @@
  */
 package org.fredy.jsrt.api;
 
-import static org.junit.Assert.*;
+import org.junit.Test;
 
 import java.io.File;
 import java.util.Iterator;
 
-import org.fredy.jsrt.api.InvalidSRTException;
-import org.fredy.jsrt.api.SRT;
-import org.fredy.jsrt.api.SRTInfo;
-import org.fredy.jsrt.api.SRTReader;
-import org.fredy.jsrt.api.SRTReaderException;
-import org.fredy.jsrt.api.SRTTimeFormat;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author fredy
  */
 public class SRTReaderTest {
+    @Test
+    public void testRead() throws Exception {
+        SRTInfo info = SRTReader.read(new File("src/test/resources/good.srt"));
 
-   @Test
-   public void testRead() throws Exception {
-       SRTInfo info = SRTReader.read(new File("src/test/resources/good1.srt"));
-       
-       assertEquals(2, info.size());
-       Iterator<SRT> iter = info.iterator();
-       SRT srt = iter.next();
-       assertEquals(1, srt.number);
-       assertEquals("Hello World", srt.text.get(0));
-       assertEquals("00:00:20,000", SRTTimeFormat.format(srt.startTime));
-       assertEquals("00:00:24,400", SRTTimeFormat.format(srt.endTime));
-       assertEquals("Bye World", srt.text.get(1));
-       
-       srt = iter.next();
-       assertEquals(2, srt.number);
-       assertEquals("00:00:24,600", SRTTimeFormat.format(srt.startTime));
-       assertEquals("00:00:27,800", SRTTimeFormat.format(srt.endTime));
-       assertEquals("Foo Bar", srt.text.get(0));
-       assertEquals("Bar Foo", srt.text.get(1));
-   }
-   
-   @Test(expected = SRTReaderException.class)
-   public void testReadFileDoesntExist() {
-       SRTReader.read(new File("foo.srt"));
-   }
-   
-   @Test(expected = SRTReaderException.class)
-   public void testReadIsNotAFile() {
-       SRTReader.read(new File("."));
-   }
-   
-   /*
-    * Additional newline after subtitle number 1
-    */
-   @Test(expected = InvalidSRTException.class)
-   public void testReadInvalidSRT1() {
-       SRTReader.read(new File("src/test/resources/bad1.srt"));
-   }
-   
-   /*
-    * Missing start time and date time information
-    */
-   @Test(expected = InvalidSRTException.class)
-   public void testReadInvalidSRT2() {
-       SRTReader.read(new File("src/test/resources/bad2.srt"));
-   }
-   
-   /*
-    * Invalid start time and date time information
-    */
-   @Test(expected = InvalidSRTException.class)
-   public void testReadInvalidSRT3() {
-       SRTReader.read(new File("src/test/resources/bad3.srt"));
-   }
-   
-   /*
-    * Missing subtitle text
-    */
-   @Test(expected = InvalidSRTException.class)
-   public void testReadInvalidSRT4() {
-       SRTReader.read(new File("src/test/resources/bad4.srt"));
-   }
+        assertEquals(2, info.size());
+        Iterator<SRT> iter = info.iterator();
+        SRT srt = iter.next();
+        assertEquals(1, srt.number);
+        assertEquals("Hello World", srt.text.get(0));
+        assertEquals("00:00:20,000", SRTTimeFormat.format(srt.startTime));
+        assertEquals("00:00:24,400", SRTTimeFormat.format(srt.endTime));
+        assertEquals("Bye World", srt.text.get(1));
+
+        srt = iter.next();
+        assertEquals(2, srt.number);
+        assertEquals("00:00:24,600", SRTTimeFormat.format(srt.startTime));
+        assertEquals("00:00:27,800", SRTTimeFormat.format(srt.endTime));
+        assertEquals("Foo Bar", srt.text.get(0));
+        assertEquals("Bar Foo", srt.text.get(1));
+    }
+
+    @Test(expected = SRTReaderException.class)
+    public void testReadFileDoesntExist() {
+        SRTReader.read(new File("foo.srt"));
+    }
+
+    @Test(expected = SRTReaderException.class)
+    public void testReadNotAFile() {
+        SRTReader.read(new File("."));
+    }
+
+    @Test(expected = InvalidSRTException.class)
+    public void testReadInvalidSubtitleNumber() {
+        SRTReader.read(new File("src/test/resources/invalid_sub_number.srt"));
+    }
+
+    @Test(expected = InvalidSRTException.class)
+    public void testReadMissingTime() {
+        SRTReader.read(new File("src/test/resources/invalid_sub_number.srt"));
+    }
+
+    @Test(expected = InvalidSRTException.class)
+    public void testReadInvalidTime() {
+        SRTReader.read(new File("src/test/resources/invalid_time.srt"));
+    }
+
+    @Test(expected = InvalidSRTException.class)
+    public void testReadInvalidStartTime() {
+        SRTReader.read(new File("src/test/resources/invalid_start_time.srt"));
+    }
+
+    @Test(expected = InvalidSRTException.class)
+    public void testReadInvalidEndTime() {
+        SRTReader.read(new File("src/test/resources/invalid_end_time.srt"));
+    }
+
+    @Test(expected = InvalidSRTException.class)
+    public void testReadInvalidSRT4() {
+        SRTReader.read(new File("src/test/resources/missing_subtitle.srt"));
+    }
 }

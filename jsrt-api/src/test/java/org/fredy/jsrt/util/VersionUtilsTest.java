@@ -22,16 +22,15 @@
  */
 package org.fredy.jsrt.util;
 
-import static org.junit.Assert.*;
-
 import org.fredy.jsrt.api.VersionException;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author fredy
  */
 public class VersionUtilsTest {
-
     @Test
     public void testCompare() {
         // major versions
